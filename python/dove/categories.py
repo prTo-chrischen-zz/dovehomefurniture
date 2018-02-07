@@ -1,25 +1,69 @@
 
 # BEGIN static data
+
+# static definitions to create our store's collections from
 _categories = {
-    "Bedroom": [
-        "Beds",
-        "Benches",
-        "Chests",
-        "Dressers & Mirrors",
-        "Headboards",
-        "Media Chests",
-        "Nightstands",
-        "Wardrobes",
-    ],
-    "Dining": [
-        "Buffets/Hutches/Curios",
-        "Chairs & Stools",
-        "Counter Height Tables",
-        "Dining Tables",
-        "Kitchen Islands",
-        "Servers",
-    ],
-    "Living": [
+    "Bedroom": {
+        "Beds": {
+            "types": ["Bed"],
+            "tags": [],
+        },
+        "Benches": {
+            "types": ["Bench"],
+            "tags": [],
+        },
+        "Chests": {
+            "types": ["Chest"],
+            "tags": [],
+        },
+        "Dressers & Mirrors": {
+            "types": ["Dresser", "Mirror"],
+            "tags": [],
+        },
+        "Headboards": {
+            "types": ["Headboard"],
+            "tags": [],
+        },
+        "Media Chests":{
+            "types": ["Media Chest"],
+            "tags": [],
+        },
+        "Nightstands": {
+            "types": ["Nightstand"],
+            "tags": [],
+        },
+        "Wardrobes": {
+            "types": ["Wardrobe"],
+            "tags": [],
+        },
+    },
+    "Dining": {
+        "Buffets/Hutches/Curios": {
+            "types": ["Buffet", "Hutch", "Curio"],
+            "tags": [],
+        },
+        "Chairs & Stools": {
+            "types": ["Chair", "Stool"],
+            "tags": [],
+        },
+        "Counter Height Tables": {
+            "types": ["Table"],
+            "tags": ["Counter Height Table"],
+        },
+        "Dining Tables": {
+            "types": ["Table"],
+            "tags": ["Dining Table"],
+        },
+        "Kitchen Islands": {
+            "types": ["Kitchen Island"],
+            "tags": [],
+        },
+        "Servers": {
+            "types": ["Server"],
+            "tags": [],
+        },
+    },
+    "Living": {
         "Chairs",
         "Chaises & Benches",
         "Coffee Tables",
@@ -32,8 +76,8 @@ _categories = {
         "Sofas",
         "Sofa Tables",
         "TV Consoles",
-    ],
-    "Youth": [
+    },
+    "Youth": {
         "Bean Bags",
         "Bunk Beds",
         "Loft Beds",
@@ -44,14 +88,14 @@ _categories = {
         "Dressers & Mirrors",
         "Nightstands ",
         "Youth Chairs",
-    ],
-    "Office": [
+    },
+    "Office": {
         "Bookshelves",
         "Desks",
         "File Cabinets",
         "Office Chairs",
-    ],
-    "Outdoor": [
+    },
+    "Outdoor": {
         "Outdoor Benches",
         "Outdoor Chairs",
         "Outdoor Coffee Sets",
@@ -61,15 +105,15 @@ _categories = {
         "Outdoor Sofas",
         "Outdoor Swings",
         "Outdoor Umbrellas",
-    ],
-    "Mattress": [
+    },
+    "Mattress": {
         "Box Springs",
         "Bunky Boards",
         "Memory Foam Mattresses",
         "Metal Frames",
         "Spring Coil Mattresses",
-    ],
-    "Accessories": [
+    },
+    "Accessories": {
         "Clocks",
         "Coat Racks",
         "Display Cabinets",
@@ -88,7 +132,7 @@ _categories = {
         "Vanities",
         "Wall Decor",
         "Wine Bars & Racks",
-    ],
+    },
 }
 
 aliases = {
@@ -118,32 +162,15 @@ aliases = {
     "tables": "Table",
 }
 
-sizes = {
-    "cal.king": "C. King",
-    "e.king": "E. King",
-    "full": "Full",
-    "king": "King",
-    "queen": "Queen",
-    "queen/full": "Queen/Full",
-    "twin": "Twin",
-    "large": "Large",
-    "small": "Small",
-}
 # END static data
 
 
+def is_valid(subcategory, category):
+    """Is the given subcategory a valid value, and is contained in category?"""
+    return subcategory in _categories[category]
+
 def subcategories(category):
     return _categories[category]
-
-def resolve_size(name):
-    # create a key that's all lowercase and strips any spaces
-    k = name.lower().replace(' ', '')
-
-    try:
-        return sizes[k]
-    except KeyError:
-        raise ValueError("'%s' couldn't be resolved to a valid size string."
-                         " Update the sizes dict." % (name))
 
 def resolve(name):
     """Turn some bullshit like "Night stands" --> "Nightstand"
@@ -159,4 +186,4 @@ def resolve(name):
                          " Update the aliases dict." % (name))
 
 def resolve_to_tag(name):
-    return resolve(name).lower().replace(' ', '-')
+    return resolve(name)

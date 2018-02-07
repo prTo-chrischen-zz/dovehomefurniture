@@ -3,6 +3,7 @@ import csv
 import os
 import re
 import sys
+from pprint import pprint
 
 from dove.product import Product
 from dove import categories
@@ -67,18 +68,27 @@ for row in data[1:]:
     # add a variant
     product.add_variant(sku, size, weight=weight, dimensions=dimensions)
 
+    if description and not product.description:
+        product.description = description
+
     if color:
         product.add_color(color)
 
     if image:
-        product.add_image(image)
+        image_path = os.path.join("f:/tmp/upload", image)
+        try:
+            product.add_image(image_path)
+        except ValueError:
+            print " [ERROR] missing image:", image_path
 
     if materials:
         materials = materials.replace('& Others', '')
         for mat in materials.split(','):
             product.add_tag("material:%s" % mat.strip())
 
-from pprint import pprint
+
 for pkey, product in products.iteritems():
-    print '==', product.name
-    pprint(product.data())
+    if product.name in done:
+        continue
+    print product.name
+    product.upload()
