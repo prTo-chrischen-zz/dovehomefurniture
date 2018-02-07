@@ -51,7 +51,6 @@ for category_name in sorted(data.keys()):
                         'option1': option_name,
                         'weight': float(option['weight'].replace(' lbs', '')),
                         'weight_unit': 'lb',
-                        'price': option['price'],
                     })
             else:
                 # create a single variant
