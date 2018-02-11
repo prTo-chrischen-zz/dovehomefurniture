@@ -5,7 +5,7 @@ import re
 import sys
 from pprint import pprint
 
-from dove.product import Product
+from dove import product as doveprod
 from dove import categories
 
 data = None
@@ -14,26 +14,19 @@ with open(sys.argv[1], 'r') as f:
     data = [row for row in reader]
 
 prefix_regex = re.compile(r'^(CM\d{4})')
-def prefix(sku):
+def derive_bed_pkey(sku):
     m = prefix_regex.match(sku)
     if not m:
         raise ValueError("Couldn't parse out prefix for '%s'" % sku)
-    return m.group(1)
+    return m.group(1) + '-BED'
 
-# We want to collapse all the beds into a single product, with each size
-# (King, Queen, etc.) as a variant within that product. The data has each of
-# these sizes as a separate row, with its own SKU, and potentially only one of
-# them actually has an image
-
-# SKU prefix -> Product object
-products = {}
 vendor = "Furniture of America"
 
 header = data[0]
 for row in data[1:]:
-    pname = row['Name'].strip()
-    if not pname:
-        print " [ERROR] missing name: ", sku
+    style = row['Name'].strip().upper()
+    if not style:
+        print " [ERROR] missing style: ", sku
         continue
 
     sku = row["Item"]
@@ -47,6 +40,28 @@ for row in data[1:]:
     dimensions = row["Product Dimension (Inch)"]
     materials = row["Material"].strip()
 
+    # --- begin bullshit specific to beds
+    # bed products are a pain in the dick, because name will be the same for
+    # both the featured and feature-less versions of the same bed
+    # eg.   "EMMALINE Traditional Bed, Wooden H/B"
+    #    vs "EMMALINE Traditional Bed"
+    feature = None
+    try:
+        feature = row['Feature'].strip()
+    except KeyError:
+        pass
+    else:
+        if 'w/' in feature:
+            # only want the feature itself, trim shit
+            feature = feature[feature.find('w/'):]
+        elif ',' in feature:
+            feature = feature[feature.find(', ')+2:]
+        elif feature:
+            raise ValueError("WTF feature is '%s'" % feature)
+        else:
+            feature = None
+    # --- end bed bullshit
+
     if size == '#N/A':
         # try and parse it out in the short description
         size = row['Short Description'].replace('Bed', '').split(' ')[0]
@@ -54,41 +69,42 @@ for row in data[1:]:
     elif size == '0':
         size = None
 
+    image_path = os.path.join("f:/tmp/upload", image)
+    if not os.path.isfile(image_path):
+        #print " [ERROR] missing image:", image_path
+        image_path = None
+
     # build the name
-    name = "%s %s %s" % (pname, row['Style'],
+    name = "%s %s %s" % (style, row['Style'],
                          categories.resolve(product_type))
     pkey = name
 
-    if pkey in products:
-        product = products[pkey]
-    else:
-        product = Product(name, category, product_type, description, vendor)
-        products[pkey] = product
+    product = doveprod.get_or_make_product(
+                product_key=pkey, name=name, category=category,
+                product_type=product_type, description=description,
+                vendor=vendor, style=style)
 
-    # add a variant
-    product.add_variant(sku, size, weight=weight, dimensions=dimensions)
+    # each row is a size; no prices in FoA data
+    try:
+        product.add_variant(size, sku, price=0, weight=weight,
+                            dimensions=dimensions, color=color, image=image_path,
+                            feature=feature)
+    except doveprod.VariantError as e:
+        print "ERROR:", str(e)
+        continue
 
+    # typically all products have the same description
     if description and not product.description:
         product.description = description
-
-    if color:
-        product.add_color(color)
-
-    if image:
-        image_path = os.path.join("f:/tmp/upload", image)
-        try:
-            product.add_image(image_path)
-        except ValueError:
-            print " [ERROR] missing image:", image_path
 
     if materials:
         materials = materials.replace('& Others', '')
         for mat in materials.split(','):
-            product.add_tag("material:%s" % mat.strip())
+            product.add_tag('material', mat.strip())
 
+    if feature and feature.endswith('Drawers'):
+        product.add_tag('feature', 'Storage')
 
-for pkey, product in products.iteritems():
-    if product.name in done:
-        continue
-    print product.name
+for pkey, product in doveprod.get_products():
+    print pkey
     product.upload()
