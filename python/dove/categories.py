@@ -6,45 +6,35 @@ _categories = {
     "Bedroom": {
         "Beds": {
             "types": ["Bed"],
-            "tags": [],
         },
         "Benches": {
             "types": ["Bench"],
-            "tags": [],
         },
         "Chests": {
             "types": ["Chest"],
-            "tags": [],
         },
         "Dressers & Mirrors": {
             "types": ["Dresser", "Mirror"],
-            "tags": [],
         },
         "Headboards": {
             "types": ["Headboard"],
-            "tags": [],
         },
         "Media Chests":{
             "types": ["Media Chest"],
-            "tags": [],
         },
         "Nightstands": {
             "types": ["Nightstand"],
-            "tags": [],
         },
         "Wardrobes": {
             "types": ["Wardrobe"],
-            "tags": [],
         },
     },
     "Dining": {
         "Buffets/Hutches/Curios": {
             "types": ["Buffet", "Hutch", "Curio"],
-            "tags": [],
         },
         "Chairs & Stools": {
             "types": ["Chair", "Stool"],
-            "tags": [],
         },
         "Counter Height Tables": {
             "types": ["Table"],
@@ -56,45 +46,118 @@ _categories = {
         },
         "Kitchen Islands": {
             "types": ["Kitchen Island"],
-            "tags": [],
         },
         "Servers": {
             "types": ["Server"],
-            "tags": [],
+        },
+        "Dining Misc.": {
+            "types": ["Display Cabinet", "Mirror", "Lazy Susan", "Mini Server",
+                      "Wine Cabinet", "Wine Rack"]
         },
     },
     "Living": {
-        "Chairs",
-        "Chaises & Benches",
-        "Coffee Tables",
-        "Futons",
-        "Love Seats",
-        "Ottomans",
-        "Recliners",
-        "Sectionals",
-        "Side Tables",
-        "Sofas",
-        "Sofa Tables",
-        "TV Consoles",
-    },
-    "Youth": {
-        "Bean Bags",
-        "Bunk Beds",
-        "Loft Beds",
-        "Beds",
-        "Trundle Beds",
-        "Headboards",
-        "Chests",
-        "Dressers & Mirrors",
-        "Nightstands ",
-        "Youth Chairs",
+        "Chairs": {
+            "types": ["Chair", "Stool"],
+        },
+        "Chaises & Benches": {
+            "types": ["Chaise", "Bench"],
+        },
+        "Coffee Tables":{
+            "types": ["Table"],
+            "tags": ["Coffee Table"],
+        },
+        "Futons": {
+            "types": ["Futon"]
+        },
+        "Love Seats": {
+            "types": ["Love Seat"]
+        },
+        "Ottomans": {
+            "types": ["Ottoman"]
+        },
+        "Recliners": {
+            "types": ["Recliner"]
+        },
+        "Sectionals": {
+            "types": ["Sectional"]
+        },
+        "Side Tables": {
+            "types": ["Side Table"]
+        },
+        "Sofas": {
+            "types": ["Sofa"]
+        },
+        "Sofa Tables": {
+            "types": ["Sofa Table"]
+        },
+        "TV Consoles": {
+            "types": ["TV Console"]
+        },
     },
     "Office": {
-        "Bookshelves",
-        "Desks",
-        "File Cabinets",
-        "Office Chairs",
+        "Bookshelves": {
+            "types": ["Bookshelf"]
+        },
+        "Desks": {
+            "types": ["Desk"]
+        },
+        "File Cabinets": {
+            "types": ["File Cabinet"]
+        },
+        "Office Chairs": {
+            "types": ["Office Chair"]
+        },
     },
+    "Youth": {
+        "Bean Bags": {
+            "types": ["Bean Bag"]
+        },
+        "Bunk Beds": {
+            "types": ["Bunk Bed"]
+        },
+        "Loft Beds": {
+            "types": ["Loft Bed"]
+        },
+        "Beds": {
+            "types": ["Bed"],
+            "tags": ["Youth"]
+        },
+        "Trundle Beds": {
+            "types": ["Trundle Bed"]
+        },
+        "Headboards": {
+            "types": ["Headboard"],
+            "tags": ["Youth"]
+        },
+        "Chests": {
+            "types": ["Chest"],
+            "tags": ["Youth"]
+        },
+        "Dressers & Mirrors": {
+            "types": ["Dresser", "Mirror"],
+            "tags": ["Youth"]
+        },
+        "Nightstands": {
+            "types": ["Nighstand"],
+            "tags": ["Youth"]
+        },
+        "Youth Chairs": {
+            "types": ["Chair"],
+            "tags": ["Youth"]
+        },
+        "Youth Misc.":{
+            "types": [
+                "Book Shelf",
+                "Canopy",
+                "Double Door Closet",
+                "Futon",
+                "Office Chair",
+                "Vanity w/ Stool",
+            ],
+        }
+    },
+}
+''' TODO
     "Outdoor": {
         "Outdoor Benches",
         "Outdoor Chairs",
@@ -134,25 +197,39 @@ _categories = {
         "Wine Bars & Racks",
     },
 }
+'''
+
+_valid_types = set()
+for _cat, cat_data in _categories.iteritems():
+    for _subcat, subcat_data in cat_data.iteritems():
+        for t in subcat_data['types']:
+            _valid_types.add(t)
 
 aliases = {
     "armoires": "Armoire",
+    "beanbags": "Bean Bag",
     "beds": "Bed",
+    "bedframes": "Bed",
     "bedrooms": "Bedroom",
     "benches": "Bench",
+    "bookshelf": "Book Shelf",
     "bookshelves": "Book Shelf",
     "buffets": "Buffet",
     "chairs": "Chair",
     "chests": "Chest",
+    "coffeetable": "Coffee Table",
     "coffeetables": "Coffee Table",
+    "consoletable": "Console Table",
     "consoletables": "Console Table",
+    "countertable": "Counter Height Table",
     "countertables": "Counter Height Table",
     "counterheighttables": "Counter Height Table",
+    "curios": "Curio",
     "desks": "Desk",
     "diningtables": "Dining Table",
     "dressers": "Dresser",
-    "endtables": "End Table",
-    "entertainmentconsoles": "Entertainment Console",
+    "endtable": "Sofa Table",
+    "entertainmentconsole": "TV Console",
     "filecabinets": "File Cabinet",
     "headboards": "Headboard",
     "hutches": "Hutch",
@@ -160,15 +237,17 @@ aliases = {
     "mediachests": "Media Chest",
     "mirrors": "Mirror",
     "nightstands": "Nightstand",
-    "piers": "Pier",
+    "pier": "TV Console",
     "servers": "Server",
-    "sideboards": "Sideboard",
+    "sideboard": "Server",
     "stools": "Stool",
     "tables": "Table",
 }
 
 # END static data
 
+class InvalidProductTypeError(ValueError):
+    pass
 
 def is_valid(subcategory, category):
     """Is the given subcategory a valid value, and is contained in category?"""
@@ -179,16 +258,20 @@ def subcategories(category):
 
 def resolve(name):
     """Turn some bullshit like "Night stands" --> "Nightstand"
-    <string> --> <our store's category displayname>
+    <string> --> <a product type in our store>
     """
+    if name in _valid_types:
+        return name
+
     # create a key that's all lowercase and strips any spaces
     k = name.lower().replace(' ', '')
 
     try:
         return aliases[k]
     except KeyError:
-        raise ValueError("'%s' couldn't be resolved to a valid category string."
-                         " Update the aliases dict." % (name))
+        raise InvalidProductTypeError(
+            "'%s' couldn't be resolved to a valid category string."
+            " Update the aliases dict." % (name))
 
 def resolve_to_tag(name):
     return resolve(name)

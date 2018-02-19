@@ -13,12 +13,8 @@ with open(sys.argv[1], 'r') as f:
     reader = csv.DictReader(f, delimiter=',')
     data = [row for row in reader]
 
-prefix_regex = re.compile(r'^(CM\d{4})')
-def derive_bed_pkey(sku):
-    m = prefix_regex.match(sku)
-    if not m:
-        raise ValueError("Couldn't parse out prefix for '%s'" % sku)
-    return m.group(1) + '-BED'
+def error(msg):
+    print "[ERROR]", msg
 
 vendor = "Furniture of America"
 
@@ -26,41 +22,23 @@ header = data[0]
 for row in data[1:]:
     style = row['Name'].strip().upper()
     if not style:
-        print " [ERROR] missing style: ", sku
+        error("missing style: %s" % (sku))
         continue
 
     sku = row["Item"]
     category = row["Categories"]
+    subcategory = row["Sub-Categories"]
     product_type = row["Sub-Categories"]
     description = row["Summary"]
-    size = row["Size"]
     weight = row["Shipping Weight (LB)"]
     color = row["Color"]
     image = row["Reference Image"].strip()
     dimensions = row["Product Dimension (Inch)"]
     materials = row["Material"].strip()
+    size = row["Size"].strip()
 
-    # --- begin bullshit specific to beds
-    # bed products are a pain in the dick, because name will be the same for
-    # both the featured and feature-less versions of the same bed
-    # eg.   "EMMALINE Traditional Bed, Wooden H/B"
-    #    vs "EMMALINE Traditional Bed"
-    feature = None
-    try:
-        feature = row['Feature'].strip()
-    except KeyError:
-        pass
-    else:
-        if 'w/' in feature:
-            # only want the feature itself, trim shit
-            feature = feature[feature.find('w/'):]
-        elif ',' in feature:
-            feature = feature[feature.find(', ')+2:]
-        elif feature:
-            raise ValueError("WTF feature is '%s'" % feature)
-        else:
-            feature = None
-    # --- end bed bullshit
+    if product_type == 'Youth Misc.':
+        product_type = row['Short Description'].split(',')[0]
 
     if size == '#N/A':
         # try and parse it out in the short description
@@ -68,6 +46,10 @@ for row in data[1:]:
         print " [WARNING] deriving size:", sku, size
     elif size == '0':
         size = None
+    elif "/" in size:
+        # bunk beds are annoying and have weird size strings
+        size = size.split(' ')[0]
+
 
     image_path = os.path.join("f:/tmp/upload", image)
     if not os.path.isfile(image_path):
@@ -75,22 +57,26 @@ for row in data[1:]:
         image_path = None
 
     # build the name
-    name = "%s %s %s" % (style, row['Style'],
-                         categories.resolve(product_type))
-    pkey = name
+    name = "%s %s %s" % (style, row['Style'], product_type)
 
-    product = doveprod.get_or_make_product(
-                product_key=pkey, name=name, category=category,
+    try:
+        product = doveprod.get_or_make_product(
+                product_key=name, name=name, category=category,
                 product_type=product_type, description=description,
-                vendor=vendor, style=style)
+                vendor=vendor, style=style, subcategory=subcategory)
+    except categories.InvalidProductTypeError as e:
+        error("Invalid product type '%s' for %s" % (product_type, sku))
+        continue
+
+    # fuck FOA's shitty data
+    product.enforce_bed_sizing = False
 
     # each row is a size; no prices in FoA data
     try:
         product.add_variant(size, sku, price=0, weight=weight,
-                            dimensions=dimensions, color=color, image=image_path,
-                            feature=feature)
+                            dimensions=dimensions, color=color, image=image_path)
     except doveprod.VariantError as e:
-        print "ERROR:", str(e)
+        error(str(e))
         continue
 
     # typically all products have the same description
@@ -102,10 +88,7 @@ for row in data[1:]:
         for mat in materials.split(','):
             product.add_tag('material', mat.strip())
 
-    if feature and feature.endswith('Drawers'):
-        product.add_tag('feature', 'Storage')
-
 for pkey, product in doveprod.get_products():
-
-    print pkey
+    pprint(product.data())
+    continue
     product.upload()

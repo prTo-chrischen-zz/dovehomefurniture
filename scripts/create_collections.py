@@ -5,7 +5,7 @@ import sys
 infile = sys.argv[1]
 
 # required shop boilerplate
-import shopify_config
+from dove import shopify_config
 shopify_config.setup()
 
 def create_collection(title, image_url, rules):
@@ -13,10 +13,14 @@ def create_collection(title, image_url, rules):
     collection.title = title
     collection.image = {'src': image_url}
     collection.rules = rules
+    collection.disjunctive = True
     collection.save()
     if collection.errors:
         print "Error processing collection:", title, collection.errors.full_messages()
     return collection
+
+print "THIS SCRIPT IS CRAP, REWRITE IT"
+sys.exit(1)
 
 with open(infile, 'r') as f:
     data = json.load(f)

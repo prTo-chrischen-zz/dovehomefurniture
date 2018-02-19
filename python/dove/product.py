@@ -12,17 +12,24 @@ import shopify
 
 
 class VariantError(StandardError):
-    pass
+    def __init__(self, sku, duplicate_combo, existing_sku):
+        self.sku = sku
+        self.duplicate = duplicate_combo
+        self.existing = existing_sku
+
+    def __str__(self):
+        return ("Combination %s already exists in %s (new sku=%s)"
+                % (str(self.duplicate), self.existing, self.sku))
 
 _products = {}
 def get_or_make_product(product_key, name, category, product_type, description,
-                        vendor, style):
+                        vendor, style, subcategory):
     global _products
     if product_key in _products:
         product = _products[product_key]
     else:
         product = Product(name, category, product_type, description, vendor,
-                          style)
+                          style, subcategory)
         _products[product_key] = product
     return product
 
@@ -37,47 +44,76 @@ class Product(object):
                  product_type,
                  description,
                  vendor,
-                 style
+                 style,
+                 subcategory=None
                  ):
 
         self.name = name
         self.product_type = categories.resolve(product_type)
         self.category = category
+        self.subcategory = subcategory
         self.description = description
         self.style = style
         self.vendor = vendor
         self.colors = set()
         self.sizes = {}
         self.images = defaultdict(list)
+        self.image_urls = []
         self.variants = []
-        self.variant_combos = set()
+        self.variant_combos = {}
 
-        # specific to beds
+        # after build_options(), this will be something like
+        # {'Color': 'option1', 'Size': 'option2'}
+        self.options_map = None
+
+        # store dimensions per size. For the cases where a product has no sizes,
+        # use this as an override
+        self.dimensions = None
+
         self.features = set()
 
         # build the minimum tags first
         self.tags = set([category.lower(),
-                         categories.resolve(product_type),
+                         self.product_type,
                          ])
+        if subcategory:
+            self.add_tag('subcategory', subcategory)
         if style:
             self.add_tag('style', style)
+
+        self.enforce_bed_sizing = (self.product_type == "Bed")
+
+    def __str__(self):
+        s = "== %s - %s" % (self.name, self.product_type)
+        s +="\n\tsizes=%s" % str(self.sizes.keys())
+        s +="\n\tcolors=%s" % str(self.colors)
+        s +="\n\tfeatures=%s" % str(self.features)
+        return s
+
 
     def add_tag(self, tag_type, tag):
         if not tag.strip():
             raise ValueError("Tag was empty!")
         self.tags.add('%s:%s' % (tag_type, tag))
 
-    def add_variant(self, size, sku, price, weight, dimensions, color, image,
-                    feature=None):
-        size = sizes.resolve(size) if size else None
+    def add_image_url(self, url):
+        self.image_urls.append(url)
+
+    def resolve_size(self, size):
+        if self.enforce_bed_sizing:
+            return sizes.resolve(size)
+        return size
+
+    def add_variant(self, size, sku, price, weight, dimensions,
+                    color=None, image=None, feature=None):
+        size = self.resolve_size(size) if size else None
 
         # Shopify doesn't like it when you try to add 2 variants with the same
         # options, so try to figure that out first and return an error
         combo = (color, size, feature)
         if combo in self.variant_combos:
-            raise VariantError("Already have a variant for combination %s (sku=%s)"
-                               % (str(combo), sku))
-        self.variant_combos.add(combo)
+            raise VariantError(sku, combo, self.variant_combos[combo])
+        self.variant_combos[combo] = sku
 
         variant_idx = len(self.variants)
         variant = {
@@ -86,26 +122,31 @@ class Product(object):
                 'weight': (float(weight) if weight else 0),
                 'weight_unit': 'lb',
                 'dimensions': dimensions,
+                'options': {},  # for use in build_variants()
             }
 
         if color:
             self.colors.add(color)
-            variant['option1'] = color
+            variant['options']['Color'] = color
         else:
             if self.colors:
                 # There are already colors for this product, so just use one
                 # of them. Otherwise you'll get a Color dropdown in the product
                 # page with "Default Title" as the value for this variant.
-                variant['option1'] = self.variants[len(self.variants)-1]['option1']
+                variant['options']['Color'] = \
+                    self.variants[-1]['options']['Color']
 
         if size:
             if size not in self.sizes:
                 self.sizes[size] = dimensions
-            variant['option2'] = size
+            variant['options']['Size'] = size
+        elif dimensions:
+            # We'll get here if a product has no size. We still want dimensions
+            self.dimensions = dimensions
 
         if feature:
             self.features.add(feature)
-            variant['option3'] = feature
+            variant['options']['Feature'] = feature
 
         self.variants.append(variant)
 
@@ -125,17 +166,20 @@ class Product(object):
             'title': self.name,
             'product_type': self.product_type,
             'body_html': self.build_description(),
-            'images': self.images,
+            'images': list(self.images.keys()) + self.image_urls,
             'vendor': self.vendor,
             'tags': list(sorted(self.tags)),
             'options': self.build_options(),
+            'options_map': self.options_map,
             'variants': self.build_variants(),
             }
 
     def build_description(self):
         desc = self.description
 
-        if self.sizes:
+        desc = self.description.replace('\n', '<br/>')
+
+        if self.sizes or self.dimensions:
             # build a table for displaying dimensions
             desc += (
                 '<br/><br/>'
@@ -143,61 +187,77 @@ class Product(object):
                 '<thead><tr><th>Dimensions</th></tr></thead>'
                 '<tbody>'
             )
-            for size in sorted(self.sizes.keys(), cmp=sizes.size_cmp):
-                dims = self.sizes[size]
-                desc += "<tr><td>%s</td><td>%s</td></tr>" % (size, dims)
-            desc += "</tbody><table>"
+            if self.dimensions:
+                # use the dimensions override first
+                desc += "<tr><td>%s</td></tr>" % (self.dimensions)
+            else:
+                # otherwise build a table from the sizes
+                for size in sorted(self.sizes.keys(), cmp=sizes.size_cmp):
+                    dims = self.sizes[size]
+                    desc += "<tr><td>%s</td><td>%s</td></tr>" % (size, dims)
+            desc += "</tbody></table>"
 
         # because sometimes the descriptions or dimension text in the source
         # data can have bullshit characters, sanitize the bitch
-        desc = desc.decode('utf-8', 'ignore').encode('utf-8')
+        decoded = desc.decode('utf-8', 'ignore')
+        encoded = decoded.encode('utf-8')
 
-        return desc
+        return encoded
 
     def build_options(self):
-        options = [
-            # assume we always have colors
-            {
-                # option1
+        # thing that Shopify API wants
+        options = []
+
+        # for use in build_variants()
+        self.options_map = {}
+
+        if self.colors:
+            options.append({
                 'name': 'Color',
                 'values': [c for c in sorted(self.colors)]
-            },
-        ]
+            })
+            self.options_map['Color'] = 'option%d' % (len(options))
         if self.sizes:
             options.append({
-                # option2
                 'name': 'Size',
                 'values': [s for s in
                            sorted(self.sizes.keys(), cmp=sizes.size_cmp)]
-                # TODO might need to differentiate sort by product_type
             })
+            self.options_map['Size'] = 'option%d' % (len(options))
         if self.features:
             options.append({
                 'name': 'Feature',
                 'values': [f for f in sorted(self.features)]
             })
+            self.options_map['Feature'] = 'option%d' % (len(options))
+
         return options
 
     def build_variants(self):
-        # clean up all our variants so that if any of them have missing options,
-        # we put a value of "Standard" (otherwise we get "Default Title")
-        if self.features:
+        if self.options_map is None:
+            raise RuntimeError("build_options() must be run first!")
 
-            swap_key = None
-            if not self.sizes:
-                # HACK: since features are stored in the variant data as
-                # option3, we need to bump it up to option2
-                swap_key = 'option2'
+        variants = []
 
-            for variant in self.variants:
-                if 'option3' not in variant:
-                    variant['option3'] = "Standard"
+        # go through and replace all the 'options' blocks with actual
+        # 'option#' keys, corresponding to our options list
+        for const_variant in self.variants:
+            # keep the original data pristine
+            variant = const_variant.copy()
 
-                if swap_key:
-                    variant['option2'] = variant['option3']
-                    del variant['option3']
+            for opt_name, new_k in self.options_map.iteritems():
+                try:
+                    value = variant['options'][opt_name]
+                except KeyError as e:
+                    # if one variant is missing one, use 'Standard'
+                    # (otherwise Shopify will use the string "Default Title")
+                    value = 'Standard'
+                variant[new_k] = value
 
-        return self.variants
+            del variant['options']
+            variants.append(variant)
+
+        return variants
 
     def create_images(self, product_id, variants):
         """variants: shopify Product Variant object
@@ -227,6 +287,9 @@ class Product(object):
         p.options = self.build_options()
         p.variants = self.build_variants()
 
+        if self.image_urls:
+            p.images = [{'src': url} for url in self.image_urls]
+
         p.save()
 
         if p.errors:
@@ -236,3 +299,17 @@ class Product(object):
         # create images afterwards, so we can associate them with variant IDs
         # (p.id doesn't exist until save())
         self.create_images(p.id, p.variants)
+
+    def find_uploaded(self, fields=['id', 'tags'], **filters):
+        """Find the uploaded equivalent of this product, if it exists.
+
+        Returns
+            shopify.Product object, or None if no such product exists
+        """
+        products = shopify.Product.find(limit=2, page=1, fields=fields,
+                                        **filters)
+        if len(products) > 1:
+            raise ValueError("Found more than one product that matches... wtf?")
+        elif not products:
+            return None
+        return products[0]

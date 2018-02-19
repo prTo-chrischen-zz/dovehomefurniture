@@ -3,15 +3,25 @@ _sizes = {
     "cal.king": "C. King",
     "e.king": "E. King",
     "full": "Full",
+    "full/full": "Full/Full",
     "king": "King",
+    "large": "Large",
     "queen": "Queen",
     "queen/full": "Queen/Full",
-    "twin": "Twin",
-    "large": "Large",
     "small": "Small",
+    "twin": "Twin",
+    "twin/twin": "Twin/Twin",
+    "twin/full": "Twin/Full",
+    "twin/queen": "Twin/Queen",
+    "twin/twin/twin": "Twin/Twin/Twin",
 }
 
+_valid_sizes = set(_sizes.values())
+
 def resolve(name):
+    if name in _valid_sizes:
+        return name
+
     # create a key that's all lowercase and strips any spaces
     k = name.lower().replace(' ', '')
 
