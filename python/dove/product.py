@@ -23,13 +23,13 @@ class VariantError(StandardError):
 
 _products = {}
 def get_or_make_product(product_key, name, category, product_type, description,
-                        vendor, style, subcategory):
+                        vendor, style):
     global _products
     if product_key in _products:
         product = _products[product_key]
     else:
         product = Product(name, category, product_type, description, vendor,
-                          style, subcategory)
+                          style)
         _products[product_key] = product
     return product
 
@@ -44,14 +44,12 @@ class Product(object):
                  product_type,
                  description,
                  vendor,
-                 style,
-                 subcategory=None
+                 style
                  ):
 
         self.name = name
-        self.product_type = categories.resolve(product_type)
+        self.product_type = categories.resolve(product_type, category)
         self.category = category
-        self.subcategory = subcategory
         self.description = description
         self.style = style
         self.vendor = vendor
@@ -76,8 +74,6 @@ class Product(object):
         self.tags = set([category.lower(),
                          self.product_type,
                          ])
-        if subcategory:
-            self.add_tag('subcategory', subcategory)
         if style:
             self.add_tag('style', style)
 

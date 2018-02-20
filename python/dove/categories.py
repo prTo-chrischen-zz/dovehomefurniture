@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 
 # BEGIN static data
 
@@ -57,13 +59,13 @@ _categories = {
     },
     "Living": {
         "Chairs": {
-            "types": ["Chair", "Stool"],
+            "types": ["Chair"],
         },
         "Chaises & Benches": {
-            "types": ["Chaise", "Bench"],
+            "types": ["Chaise", "Bench", "Storage Bench"],
         },
         "Coffee Tables":{
-            "types": ["Table"],
+            "types": ["Table", "Coffee Table", "Coffee Table Set"],
             "tags": ["Coffee Table"],
         },
         "Futons": {
@@ -91,7 +93,14 @@ _categories = {
             "types": ["Sofa Table"]
         },
         "TV Consoles": {
-            "types": ["TV Console"]
+            "types": [
+                "TV Console",
+                "Pier Cabinet",
+                "Bridge",
+                "Hutch",
+                "Book Shelf",
+                "Media Cabinet",
+            ]
         },
     },
     "Office": {
@@ -109,25 +118,22 @@ _categories = {
         },
     },
     "Youth": {
-        "Bean Bags": {
-            "types": ["Bean Bag"]
-        },
-        "Bunk Beds": {
-            "types": ["Bunk Bed"]
-        },
-        "Loft Beds": {
-            "types": ["Loft Bed"]
-        },
         "Beds": {
             "types": ["Bed"],
             "tags": ["Youth"]
         },
+        "Bunk Beds": {
+            "types": ["Bunk Bed"]
+        },
+        "Daybeds": {
+            "types": ["Daybed"],
+            "tags": ["Youth"]
+        },
+        "Loft Beds": {
+            "types": ["Loft Bed"]
+        },
         "Trundle Beds": {
             "types": ["Trundle Bed"]
-        },
-        "Headboards": {
-            "types": ["Headboard"],
-            "tags": ["Youth"]
         },
         "Chests": {
             "types": ["Chest"],
@@ -138,22 +144,31 @@ _categories = {
             "tags": ["Youth"]
         },
         "Nightstands": {
-            "types": ["Nighstand"],
-            "tags": ["Youth"]
-        },
-        "Youth Chairs": {
-            "types": ["Chair"],
+            "types": ["Nightstand"],
             "tags": ["Youth"]
         },
         "Youth Misc.":{
             "types": [
+                "Bean Bag",
+                "Bench",
+                "Book Case",
                 "Book Shelf",
+                "Coat Rack",
                 "Canopy",
+                "Chair",
+                "Desk",
+                "Drawer",
                 "Double Door Closet",
                 "Futon",
+                "Hutch",
+                "Media Chest",
                 "Office Chair",
-                "Vanity w/ Stool",
+                "Ottoman",
+                "Shelf",
+                "Table",
+                "Vanity",
             ],
+            "tags": ["Youth"],
         }
     },
 }
@@ -199,49 +214,19 @@ _categories = {
 }
 '''
 
-_valid_types = set()
-for _cat, cat_data in _categories.iteritems():
+_valid_types = defaultdict(set)
+for cat, cat_data in _categories.iteritems():
     for _subcat, subcat_data in cat_data.iteritems():
         for t in subcat_data['types']:
-            _valid_types.add(t)
+            _valid_types[cat].add(t)
 
 aliases = {
-    "armoires": "Armoire",
-    "beanbags": "Bean Bag",
-    "beds": "Bed",
-    "bedframes": "Bed",
-    "bedrooms": "Bedroom",
-    "benches": "Bench",
+    "bedframe": "Bed",
     "bookshelf": "Book Shelf",
-    "bookshelves": "Book Shelf",
-    "buffets": "Buffet",
-    "chairs": "Chair",
-    "chests": "Chest",
-    "coffeetable": "Coffee Table",
-    "coffeetables": "Coffee Table",
-    "consoletable": "Console Table",
-    "consoletables": "Console Table",
-    "countertable": "Counter Height Table",
-    "countertables": "Counter Height Table",
-    "counterheighttables": "Counter Height Table",
-    "curios": "Curio",
-    "desks": "Desk",
-    "diningtables": "Dining Table",
-    "dressers": "Dresser",
     "endtable": "Sofa Table",
     "entertainmentconsole": "TV Console",
-    "filecabinets": "File Cabinet",
-    "headboards": "Headboard",
-    "hutches": "Hutch",
-    "jewelrydrawers": "Jewelry Drawer",
-    "mediachests": "Media Chest",
-    "mirrors": "Mirror",
-    "nightstands": "Nightstand",
+    "nightstand": "Nightstand",
     "pier": "TV Console",
-    "servers": "Server",
-    "sideboard": "Server",
-    "stools": "Stool",
-    "tables": "Table",
 }
 
 # END static data
@@ -256,22 +241,22 @@ def is_valid(subcategory, category):
 def subcategories(category):
     return _categories[category]
 
-def resolve(name):
+def resolve(name, category):
     """Turn some bullshit like "Night stands" --> "Nightstand"
     <string> --> <a product type in our store>
-    """
-    if name in _valid_types:
-        return name
 
+    and also validate that it's a valid type for the category
+    """
+    # check if we have an alias for it
     # create a key that's all lowercase and strips any spaces
     k = name.lower().replace(' ', '')
+    if k in aliases:
+        name = aliases[k]
 
-    try:
-        return aliases[k]
-    except KeyError:
+    if name not in _valid_types[category]:
         raise InvalidProductTypeError(
             "'%s' couldn't be resolved to a valid category string."
             " Update the aliases dict." % (name))
 
-def resolve_to_tag(name):
-    return resolve(name)
+    return name
+

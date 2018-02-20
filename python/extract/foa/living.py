@@ -18,19 +18,16 @@ def error(msg):
 
 vendor = "Furniture of America"
 
-product_types = set()
-
 header = data[0]
 for row in data[1:]:
+    sku = row["Item"]
     style = row['Name'].strip().upper()
     if not style:
         error("missing style: %s" % (sku))
         continue
 
-    sku = row["Item"]
     category = row["Categories"]
     product_type = row["Product Type"]
-    product_types.add(product_type)
     description = row["Summary"]
     weight = row["Shipping Weight (LB)"]
     color = row["Color"]
@@ -40,19 +37,8 @@ for row in data[1:]:
     size = row["Size"].strip()
     feature = row["Feature"].strip()
 
-    if product_type == 'Youth Misc.':
-        product_type = row['Short Description'].split(',')[0]
-
-    if size == '#N/A':
-        # try and parse it out in the short description
-        size = row['Short Description'].replace('Bed', '').split(' ')[0]
-        print " [WARNING] deriving size:", sku, size
-    elif size == '0':
+    if size in ('#N/A', '0'):
         size = None
-    elif "/" in size:
-        # bunk beds are annoying and have weird size strings
-        size = size.split(' ')[0]
-
 
     image_path = os.path.join("/Users/dcheng/Desktop/upload", image)
     if not os.path.isfile(image_path):
@@ -70,9 +56,6 @@ for row in data[1:]:
     except categories.InvalidProductTypeError as e:
         error("Invalid product type '%s' for %s" % (product_type, sku))
         continue
-
-    # fuck FOA's shitty data
-    product.enforce_bed_sizing = False
 
     # each row is a size; no prices in FoA data
     try:
@@ -92,10 +75,11 @@ for row in data[1:]:
         for mat in materials.split(','):
             product.add_tag('material', mat.strip())
 
+sys.exit(0)
 notyet = True
 for pkey, product in doveprod.get_products():
-    if notyet and pkey != 'PRISMO II Cottage Bunk Bed':
-        continue
-    notyet = False
+    #if notyet and pkey != 'PRISMO II Cottage Bunk Bed':
+    #    continue
+    #notyet = False
     print pkey
     product.upload()
