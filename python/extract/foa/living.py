@@ -40,7 +40,7 @@ for row in data[1:]:
     if size in ('#N/A', '0'):
         size = None
 
-    image_path = os.path.join("/Users/dcheng/Desktop/upload", image)
+    image_path = os.path.join("f:/tmp/upload", image)
     if not os.path.isfile(image_path):
         print " [ERROR] missing image:", image_path
         image_path = None
@@ -75,11 +75,10 @@ for row in data[1:]:
         for mat in materials.split(','):
             product.add_tag('material', mat.strip())
 
-sys.exit(0)
 notyet = True
 for pkey, product in doveprod.get_products():
-    #if notyet and pkey != 'PRISMO II Cottage Bunk Bed':
-    #    continue
-    #notyet = False
+    if notyet and pkey != 'DUNDEE Transitional Love Seat':
+        continue
+    notyet = False
     print pkey
     product.upload()

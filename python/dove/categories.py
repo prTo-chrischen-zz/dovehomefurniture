@@ -84,16 +84,14 @@ _categories = {
             "types": ["Sectional"]
         },
         "Side Tables": {
-            "types": ["Side Table"]
+            "types": ["Side Table", "Sofa Table", "Console Table"]
         },
         "Sofas": {
             "types": ["Sofa"]
         },
-        "Sofa Tables": {
-            "types": ["Sofa Table"]
-        },
-        "TV Consoles": {
+        "Entertainment Consoles": {
             "types": [
+                "Entertainment Console",
                 "TV Console",
                 "Pier Cabinet",
                 "Bridge",
