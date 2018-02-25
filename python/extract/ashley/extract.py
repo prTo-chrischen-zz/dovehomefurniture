@@ -32,7 +32,9 @@ ignores = (
     'sofa/love sec/end tbls', # bullshit outdoor crap
     'vase',
     'w/UPH Stools (3/CN)',
-
+    'w/UMB OPT',
+    'Replaced by W635-134 Pier', # Old category they're too lazy to remove
+    "HYBRID UNIT", # Store display units for mattress cross sections
 )
 
 # trivial mappings that don't require code
@@ -60,7 +62,7 @@ def figure_out(s, out_data=None):
 
     low_s = s.lower()
     for ignore in ignores:
-        if ignore in low_s:
+        if ignore.lower() in low_s:
             raise SkipExc(s)
 
     # (category, product_type)
@@ -81,10 +83,21 @@ def figure_out(s, out_data=None):
         if 'cushion' in post.lower() and '/' not in post:
             raise SkipExc(s)
         setvals("Living", "Loveseat")
+    # Because some fucking idiot decided to put one type in all caps
+    elif "LOVESEAT" in s:
+        # tease out the size/features
+        pre, post = breakdown(s, "LOVESEAT")
+        if 'cushion' in post.lower() and '/' not in post:
+            raise SkipExc(s)
+        setvals("Living", "Loveseat")
     elif "Home Office" in s:
         if 'Desk Chair' in s:
             if '(2/CN)' in s: name_suffix = "x2"
             setvals("Office", "Office Chair")
+        if 'Cabinet' in s:
+            setvals("Office", "Cabinet")
+        if 'Table' in s:
+            setvals("Office", "Corner Table")
     elif "Dining" in s:
         if "Chair" in s:
             if "UPH" in s: tags.append(('feature', 'Upholstered'))
@@ -92,6 +105,19 @@ def figure_out(s, out_data=None):
             if 'Side' in s: feature = 'Side'
             if '(2/CN)' in s: name_suffix = "x2"
             setvals("Dining", "Chair")
+        elif "Table" in s:
+            if "Dining Table" in s:
+                if "Rectangular" in s: tags.append(('feature', 'Rectangular'))
+            elif "Dining Room" in s:
+                if "Base" in s: name_suffix = "(Base Only)"
+                if "Top" in s: name_suffix = "(Top Only)"
+                if "6/CN" in s: name_suffix = "(6 Piece)"
+                if "7/CN" in s: name_suffix = "(7 Piece)"
+                if "EXT" in s: tags.append(('feature', 'Extendable'))
+                if "RECT" in s: tags.append(('feature', 'Rectangular'))
+                if "Rectangular" in s: tags.append(('feature', 'Rectangular'))
+                if "Round" in s: tags.append(('feature', 'Round'))
+            setvals("Dining", "Table")
     elif "Recliner" in s:
         if 'LAF' in s or 'RAF' in s:
             raise SkipExc(s)
@@ -201,7 +227,72 @@ def figure_out(s, out_data=None):
             setvals('Bedroom', 'Mirror')
         else:
             setvals('Accessories', 'Mirror')
-
+    elif "Rug" in s:
+        if 'Large' in s: size = 'Large'
+        elif 'Medium' in s: size = 'Medium'
+        # There's also a Rug Swatch Display Unit, which neither Ashley nor competitors have. Leaving it out
+        setvals('Accessories', 'Rug')
+    # This is for sectionals, we'll only be dealing with the Wedges as a placeholder for David- 
+    # half and corner wedges not included!
+    elif "Wedge" in s and "Corner Wedge" not in s and "Half Wedge" not in s:
+        if "Oversized" in s: size = Oversized
+        setvals('Living', 'Sectional')
+    # Not a Sofa Sleeper otherwise would have been caught above
+    # Sectional Sleeper
+    elif "Sleeper" in s and "Armless" in s:
+        if "Full" in s: size = "Full"
+        setvals('Living', 'Sectional')
+    # Putting this in Accessories for now, since technically not 'furniture'
+    elif "Comforter" in s:
+        if "King" in s: size = "King"
+        if "Queen" in s: size = "Queen"
+        if "Full" in s: size = "Full"
+        if "Twin" in s: size = "Twin"
+        setvals('Accessories', 'Bedding')
+    # A pier is a tower of a home entertainment center; TV goes in middle of two Piers
+    elif "Pier" in s:
+        if "Right" in s: tags.append(('feature', 'Right side'))
+        if "Left" in s: tags.append(('feature', 'Left side'))
+        if "Tall" in s: size = "Tall"
+        setvals('Living', 'Pier Cabinet')
+    elif "Cabinet" in s:
+        if "File" in s:
+            if "Lateral" in s: tags.append(('feature', 'Lateral'))
+            setvals('Office', 'File Cabinet')
+        elif "Display" in s: setvals('Dining', 'Display Cabinet')
+        elif "Wine" in s: setvals('Dining', 'Wine Cabinet')
+        elif "Accent" in s: setvals('Living', 'Cabinet')
+        elif "Storage" in s:
+            tags.append(('feature', 'Storage'))
+            setvals('Living', 'Storage Cabinet')
+    elif "Lamp" in s:
+        # First, handle locations
+        if "Table" in s: tags.append(('feature', 'Table Lamp'))
+        if "Floor" in s: tags.append(('feature', 'Floor Lamp'))
+        if "Desk" in s: tags.append(('feature', 'Desk Lamp'))
+        if "Uplight" in s: tags.append(('feature', 'Uplight Lamp'))
+        if "Tray" in s: tags.append(('feature', 'Tray Lamp'))
+        if "Arc" in s: tags.append(('feature', 'Arc Lamp'))
+        # Is this how we want to handle materials?
+        if "Acrylic" in s: tags.append(('material', 'Acrylic'))
+        if "Ceramic" in s: tags.append(('material', 'Ceramic'))
+        if "Crystal" in s: tags.append(('material', 'Crystal'))
+        if "Glass" in s: tags.append(('material', 'Glass'))
+        if "Metal" in s: tags.append(('material', 'Metal'))
+        if "Paper" in s: tags.append(('material', 'Paper'))
+        if "Poly" in s: tags.append(('material', 'Poly'))
+        if "Rattan" in s: tags.append(('material', 'Rattan'))
+        if "Shell" in s: tags.append(('material', 'Shell'))
+        if "Terracotta" in s: tags.append(('material', 'Terracotta'))
+        if "Wood" in s: tags.append(('material', 'Wood'))
+        # Finally, handle counts
+        if "(2/CN)" in s: name_suffix = "x2"
+        if "(4/CN)" in s: name_suffix = "x4"
+        setvals('Accessories', 'Lighting')
+    elif "Table" in s:
+        # Table set we are now dealing with can be gotten with command below: since the "-v" terms will all by caught by above
+        # cat types.txt | grep "Table" | grep -v "Home Office" | grep -v "Dining" | grep -v "Lamp" | grep -v "Sofa" | grep -v "Cocktail Table"
+        
     if not ret[0] or not ret[1]:
         raise TypeError(s)
 

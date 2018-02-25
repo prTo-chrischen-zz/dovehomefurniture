@@ -58,6 +58,9 @@ _categories = {
         },
     },
     "Living": {
+        "Cabinets": {
+            "types": ["Storage Cabinet", "Cabinet"],
+        },
         "Chairs": {
             "types": ["Chair"],
         },
@@ -109,7 +112,7 @@ _categories = {
             "types": ["Desk"]
         },
         "File Cabinets": {
-            "types": ["File Cabinet"]
+            "types": ["File Cabinet", "Cabinet"]
         },
         "Office Chairs": {
             "types": ["Office Chair"]
@@ -190,6 +193,7 @@ _categories = {
         "Spring Coil Mattresses",
     },
     "Accessories": {
+        "Bedding",
         "Clocks",
         "Coat Racks",
         "Display Cabinets",
