@@ -86,8 +86,8 @@ _categories = {
         "Sectionals": {
             "types": ["Sectional"]
         },
-        "Side Tables": {
-            "types": ["Side Table", "Sofa Table", "Console Table"]
+        "Living Tables": {
+            "types": ["Side Table", "Sofa Table", "Console Table", "Accent Table"]
         },
         "Sofas": {
             "types": ["Sofa"]
@@ -183,6 +183,7 @@ _categories = {
         "Outdoor Sectionals",
         "Outdoor Sofas",
         "Outdoor Swings",
+        "Outdoor Table",
         "Outdoor Umbrellas",
     },
     "Mattress": {

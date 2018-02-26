@@ -190,12 +190,6 @@ def figure_out(s, out_data=None):
         elif '4/CN' in s: name_suffix = "x4"
         elif '5/CN' in s: name_suffix = "x5"
         setvals("Accessories", "Wall Decor")
-    elif "Cocktail Table" in s:
-        pre, post = breakdown(s, "Cocktail Table")
-        if "with Storage" in post:
-            tags.append(('feature', 'Storage'))
-        if pre: tags.append(('feature', pre))
-        setvals("Living", "Coffee Table")
     elif "Sofa" in s:
         if "Table" in s and 'Drop Down Table' not in s:
             if '/CN' in s:
@@ -232,7 +226,7 @@ def figure_out(s, out_data=None):
         elif 'Medium' in s: size = 'Medium'
         # There's also a Rug Swatch Display Unit, which neither Ashley nor competitors have. Leaving it out
         setvals('Accessories', 'Rug')
-    # This is for sectionals, we'll only be dealing with the Wedges as a placeholder for David- 
+    # This is for sectionals, we'll only be dealing with the Wedges as a placeholder for David-
     # half and corner wedges not included!
     elif "Wedge" in s and "Corner Wedge" not in s and "Half Wedge" not in s:
         if "Oversized" in s: size = Oversized
@@ -289,10 +283,39 @@ def figure_out(s, out_data=None):
         if "(2/CN)" in s: name_suffix = "x2"
         if "(4/CN)" in s: name_suffix = "x4"
         setvals('Accessories', 'Lighting')
+    elif "Cocktail T" in s:
+        pre, post = breakdown(s, "Cocktail TBL" if "TBL" in s else "Cocktail Table")
+        if "with Storage" in post: tags.append(('feature', 'Storage'))
+        if pre: tags.append(('feature', pre))
+        setvals("Living", "Coffee Table")
     elif "Table" in s:
         # Table set we are now dealing with can be gotten with command below: since the "-v" terms will all by caught by above
-        # cat types.txt | grep "Table" | grep -v "Home Office" | grep -v "Dining" | grep -v "Lamp" | grep -v "Sofa" | grep -v "Cocktail Table"
-        
+        # cat types.txt | grep "Table" | grep -v "Home Office" | grep -v "Dining" | grep -v "Lamp" | grep -v "Sofa" | grep -v "Cocktail T"
+        if "End Table" in s:
+            # handle shapes
+            if 'Rectangular' in s: tags.append(('shape', 'Rectangular'))
+            elif 'Round' in s:     tags.append(('shape', 'Round'))
+            elif 'Square' in s:    tags.append(('shape', 'Square'))
+            elif 'Triangle' in s:  tags.append(('shape', 'Triangle'))
+            # handle sets
+            if "Nesting" in s:
+                name_prefix = "Nesting"
+                if "2/CN" in s: name_suffix = "x2"
+                elif "3/CN" in s: name_suffix = "x3"
+            setvals("Living", "End Table")
+        elif "Accent Table" in s:
+            if "Set of 2" in s: name_suffix = "x2"
+            setvals("Living", "Accent Table")
+        elif "Console" in s:
+            setvals("Living", "Console Table")
+        elif s == "Bar Table":
+            # these are outdoor items
+            setvals("Outdoor", "Outdoor Table")
+
+        # TODO finish this section
+        raise Exception("Tables aren't done yet")
+
+
     if not ret[0] or not ret[1]:
         raise TypeError(s)
 
