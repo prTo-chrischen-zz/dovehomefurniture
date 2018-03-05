@@ -50,7 +50,7 @@ _categories = {
             "tags": ["Dining Table"],
         },
         "Kitchen Islands": {
-            "types": ["Kitchen Island"],
+            "types": ["Kitchen Island", "Kitchen Cart"],
         },
         "Servers": {
             "types": ["Server"],
@@ -81,7 +81,7 @@ _categories = {
             "types": ["Love Seat"]
         },
         "Ottomans": {
-            "types": ["Ottoman"]
+            "types": ["Ottoman", "Pouf"]
         },
         "Recliners": {
             "types": ["Recliner"]
@@ -174,6 +174,15 @@ _categories = {
             ],
             "tags": ["Youth"],
         }
+    },
+    "Outdoor": {
+        "Outdoor Benches": { "types": ["Outdoor Bench"] },
+        "Outdoor Tables": { "types": ["Outdoor Table"] },
+    },
+    "Accessories": {
+        "Lamps": {"types": ["Lamp"]},
+        "Rugs": {"types": ["Rug"]},
+        "Under Bed Storage": {"types": ["Under Bed Storage"]},
     },
 }
 ''' TODO

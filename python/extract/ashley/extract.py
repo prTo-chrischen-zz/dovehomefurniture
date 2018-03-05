@@ -19,20 +19,43 @@ items = data['items']
 
 # substrings that, if found, will cause an item to be skipped
 ignores = (
+    'accessory set',
+    'adjustable base',
+    'adjustable head base',
     'back cushion',
+    'bar with marble top',
+    'bench seat cushion',
+    'bowl',
     'bracket',
+    'candle holder',
+    'console with storage',
     'corner wedge',
+    'coverlet set',
+    'credenza',
+    ' drawer box',
+    'duvet cover set',
     ' footboard',
+    ' foundation',
     ' ftbd',
+    'jar',
+    ' mattress',
     'panel rails',
+    'pendant light',
     'poster rails',
     ' posts',
     'photo frame',
     'quilt set',
+    'sculpture',
+    'seat cushion',
     'sofa/love sec/end tbls', # bullshit outdoor crap
+    'tray ',
+    'throw ',
+    ' trundle frame',
     'vase',
     'w/UPH Stools (3/CN)',
     'w/UMB OPT',
+    'wall decor',
+    'wall sconce',
     'Replaced by W635-134 Pier', # Old category they're too lazy to remove
     "HYBRID UNIT", # Store display units for mattress cross sections
     'Rails', # We only want Headboards to identify beds
@@ -40,7 +63,10 @@ ignores = (
 
 # trivial mappings that don't require code
 cat_map = {
+    'Curio': ('Dining', 'Curio'),
     'Medium Rug': ('Living', 'Rug'),
+    'Kitchen Cart': ('Dining', 'Kitchen Cart'),
+    'Pouf': ('Living', 'Pouf'),
     'Sofa': ('Living', 'Sofa'),
 }
 
@@ -91,14 +117,23 @@ def figure_out(s, out_data=None):
         if 'cushion' in post.lower() and '/' not in post:
             raise SkipExc(s)
         setvals("Living", "Loveseat")
-    elif "Home Office" in s:
+    elif "Home Office" in s :
         if 'Desk Chair' in s:
             if '(2/CN)' in s: name_suffix = "x2"
             setvals("Office", "Office Chair")
-        if 'Cabinet' in s:
+        elif "Desk" in s:
+            if 'Small' in s: size = "Small"
+            elif 'Large' in s: size = "Large"
+            elif 'Short' in s: size = "Short"
+            elif 'Tall' in s: size = "Tall"
+            if "Drop Front" in s: tags.append(('feature', 'Drop Down Front'))
+            if 'Desk Hutch' in s: feature = "w/ Hutch"
+            setvals("Office", "Desk")
+        elif 'Cabinet' in s:
             setvals("Office", "Cabinet")
-        if 'Table' in s:
+        elif 'Table' in s:
             setvals("Office", "Corner Table")
+
     elif "Dining" in s or 'DRM' in s:
         if "Chair" in s:
             if "UPH" in s: tags.append(('feature', 'Upholstered'))
@@ -107,21 +142,37 @@ def figure_out(s, out_data=None):
             if '(2/CN)' in s: name_suffix = "x2"
             setvals("Dining", "Chair")
         elif "Table" in s or 'TBL' in s:
-            if "Dining Table" in s:
-                if "Rectangular" in s: tags.append(('feature', 'Rectangular'))
-            elif "Dining Room" in s:
-                if "Top" in s: raise SkipExc(s)
-                if "6/CN" in s: name_suffix = "(6 Piece)"
-                if "7/CN" in s: name_suffix = "(7 Piece)"
-                if "EXT" in s: tags.append(('feature', 'Extendable'))
-                if "RECT" in s: tags.append(('feature', 'Rectangular'))
-                if "Rectangular" in s: tags.append(('feature', 'Rectangular'))
-                if "Round" in s: tags.append(('feature', 'Round'))
-            setvals("Dining", "Table")
+            if "UMB" in s:
+                # this has an umbrella option, and is an outdoor table
+                tags.append(('feature', "Umbrella"))
+                setvals("Outdoor", "Outdoor Table")
+            else:
+                if "Dining Table" in s:
+                    if "Rectangular" in s: tags.append(('feature', 'Rectangular'))
+                    setvals("Dining", "Table")
+                elif "Dining Room" in s or 'DRM' in s:
+                    if "Top" in s: raise SkipExc(s)
+                    if "5/CN" in s: name_suffix = "(5pc Set)"
+                    if "6/CN" in s: name_suffix = "(6pc Set)"
+                    if "7/CN" in s: name_suffix = "(7pc Set)"
+                    if "EXT" in s: tags.append(('feature', 'Extendable'))
+                    if "RECT" in s: tags.append(('feature', 'Rectangular'))
+                    if "Rectangular" in s: tags.append(('feature', 'Rectangular'))
+                    if "Round" in s: tags.append(('feature', 'Round'))
+                    if "Counter" in s:
+                        setvals("Dining", "Counter Height Table")
+                    else:
+                        setvals("Dining", "Table")
         elif 'Bench' in s:
             if 'UPH' in s: tags.append(('feature', 'Upholstered'))
             setvals("Dining", "Bench")
-    elif "Recliner" in s:
+        elif "Server" in s:
+            setvals("Dining", "Server")
+        elif "Buffet" in s:
+            setvals("Dining", "Buffet")
+        elif "China" in s:
+            setvals("Dining", "Display Cabinet")
+    elif "Recliner" in s or "REC" in s:
         if 'LAF' in s or 'RAF' in s:
             raise SkipExc(s)
         if 'Armless' in s: tags.append(('feature', 'Armless'))
@@ -158,6 +209,13 @@ def figure_out(s, out_data=None):
                 tags.append(('feature', pre))
                 break
         setvals("Bedroom", "Bed")
+    elif "Under Bed Storage" in s:
+        # these are optional storage units for beds, add them as options
+        if 'Queen/King' in s: size = ['Queen', 'King']
+        elif 'Twin/Full' in s: size = ['Twin', 'Full']
+        elif 'Full' in s: size = 'Full'
+        feature = "w/ Storage"
+        setvals("Bedroom", "Bed")
     elif "Media Chest" in s:
         pre, post = breakdown(s, "Media Chest")
         if 'w/' in post:
@@ -187,13 +245,22 @@ def figure_out(s, out_data=None):
             tags.append(('feature', 'Upholstered'))
         if pre:  size = pre
         setvals("Dining", "Stool")
+    elif "Barstool" in s:
+        if 'UPH' or 'Upholstered' in s: tags.append(('feature', 'Upholstered'))
+        if 'Double' in s:
+            tags.append(('feature', 'Double'))
+            name_prefix = "Double"
+        if 'Swivel' in s: tags.append(('feature', 'Swivel'))
+        if   '2/CN' in s: name_suffix = "x2"
+        elif '4/CN' in s: name_suffix = "x4"
+        setvals("Dining", "Stool")
     elif "Wall Art" in s:
         if   '2/CN' in s: name_suffix = "x2"
         elif '3/CN' in s: name_suffix = "x3"
         elif '4/CN' in s: name_suffix = "x4"
         elif '5/CN' in s: name_suffix = "x5"
         setvals("Accessories", "Wall Decor")
-    elif "Sofa" in s:
+    elif "sofa" in low_s:
         if "Table" in s and 'Drop Down Table' not in s:
             if '/CN' in s:
                 raise SkipExc(s)
@@ -217,7 +284,18 @@ def figure_out(s, out_data=None):
                 elif "Full" in s: size = "Full"
                 elif "Queen" in s: size = "Queen"
             setvals("Living", "Sofa")
+    elif 'cuddler' in low_s:
+        # this is a feature of a sectional
+        if   'LAF' in s: feature = 'LAF Cuddler'
+        elif 'RAF' in s: feature = 'RAF Cuddler'
+        setvals("Living", "Sectional")
+    elif "chaise" in low_s:
+        if "RAF" in s or "LAF" in s:
+            # skip these since they're part of sectionals
+            raise SkipExc(s)
+        setvals("Living", "Chaise")
     elif "Mirror" in s:
+        if '2/CN' in s: name_suffix = 'x2'
         if 'Floor Standing' in s: tags.append(('feature', 'Standing'))
         if 'Vanity' in s: tags.append(('feature', 'Vanity'))
         if 'Bedroom' in s:
@@ -232,7 +310,7 @@ def figure_out(s, out_data=None):
     # This is for sectionals, we'll only be dealing with the Wedges as a placeholder for David-
     # half and corner wedges not included!
     elif "Wedge" in s and "Corner Wedge" not in s and "Half Wedge" not in s:
-        if "Oversized" in s: size = Oversized
+        if "Oversized" in s: size = "Oversized"
         setvals('Living', 'Sectional')
     # Not a Sofa Sleeper otherwise would have been caught above
     # Sectional Sleeper
@@ -285,18 +363,19 @@ def figure_out(s, out_data=None):
         # Finally, handle counts
         if "(2/CN)" in s: name_suffix = "x2"
         if "(4/CN)" in s: name_suffix = "x4"
-        setvals('Accessories', 'Lighting')
+        setvals('Accessories', 'Lamp')
     elif "Cocktail T" in s:
         pre, post = breakdown(s, "Cocktail TBL" if "TBL" in s else "Cocktail Table")
         if "with Storage" in post: tags.append(('feature', 'Storage'))
         if pre: tags.append(('feature', pre))
         setvals("Living", "Coffee Table")
-    elif "Table" in s:
+    elif "Table" in s or "TBL" in s:
         # Deal with shapes first
         if 'Rectangular' in s or 'RECT' in s: tags.append(('shape', 'Rectangular'))
         elif 'Round' in s:     tags.append(('shape', 'Round'))
         elif 'Square' in s:    tags.append(('shape', 'Square'))
         elif 'Triangle' in s:  tags.append(('shape', 'Triangle'))
+        if "EXT" in s: tags.append(('feature', 'Extendable'))
         # Table set we are now dealing with can be gotten with command below: since the "-v" terms will all by caught by above
         # cat types.txt | grep "Table" | grep -v "Home Office" | grep -v "Dining" | grep -v "Lamp" | grep -v "Sofa" | grep -v "Cocktail T"
         if "End Table" in s:
@@ -315,72 +394,91 @@ def figure_out(s, out_data=None):
             # these are outdoor items
             setvals("Outdoor", "Outdoor Table")
         elif "Counter Table" in s or "Counter T" in s:
-            if 'Storage' in s: tags.append(('feature'), 'Storage')
-            if '5/CN' in s: name_suffix = "Set of 5"
+            if 'Storage' in s: tags.append(('feature', 'Storage'))
+            if '5/CN' in s: name_suffix = "(5pc Set)"
             setvals("Dining", "Counter Height Table")
         elif "Fire Pit" in s:
             # Outdoor tables again
             setvals("Outdoor", "Fire Pit Table")
+        elif "UMB" in s:
+            setvals("Outdoor", "Outdoor Table")
         else:
-            if "EXT" in s: tags.append(('feature', 'Extendable'))
-            # Umbrella is outdoors
-            if "UMB" in s: raise SkipExc(s)
-            # Night Table == Nightstand, to be safe here
-            if "Night" in s: raise SkipExc(s)
-            # Random shit
-            if "OTTO" in s: raise SkipExc(s)
             setvals("Living", "Table")
     elif "Otto" in s:
-        # This is a Love/Chaise/otto set
-        if "/Otto" in s: raise SkipExc(s) 
-        if "2/CN" in s: name_suffix = "x2"
-        if "Accent" in s: tags.append(('feature', 'Accent'))
-        if "Storage" in s: tags.append(('feature', 'Storage'))
-        if "Oversized" in s: tags.append(('feature', 'Oversized'))
         # We're not selling only the cushion
         if "Seat Cushion" in s: raise SkipExc(s)
+        # This is a Love/Chaise/otto set
+        if "/Otto" in s: raise SkipExc(s)
+        if "2/CN" in s: name_suffix = "x2"
+        if "Storage" in s: tags.append(('feature', 'Storage'))
         setvals("Living", "Ottoman")
     elif "Chest" in s:
-        if "Accent" in s: tags.append(('feature', 'Accent'))
+        if "Lingerie" in s: name_prefix = "Lingerie"
         if "Door" in s: tags.append(('feature', 'Has Door'))
-        if "Dressing" in s: tags.append(('feature', 'Dressing'))
-        if "Lingerie" in s: tags.append(('feature', 'Lingerie'))
-        if "Fireplace Option" in s: feature = "with Fireplace"
-        if "Two Drawer" in s: tags.append(('feature', 'Two Drawer'))
-        if "Three Drawer" in s: tags.append(('feature', 'Three Drawer'))
-        if "Four Drawer" in s: tags.append(('feature', 'Four Drawer'))
-        if "Five Drawer" in s: tags.append(('feature', 'Five Drawer'))
-        if "Six Drawer" in s: tags.append(('feature', 'Six Drawer'))
-        # Media chest is different
-        if "Media Chest" in s:
-            setvals("Bedroom", "Media Chest")
-        else:
-            setvals("Bedroom", "Chest")
+        if "Two Drawer" in s:     tags.append(('feature', '2 Drawer'))
+        elif "Three Drawer" in s: tags.append(('feature', '3 Drawer'))
+        elif "Four Drawer" in s:  tags.append(('feature', '4 Drawer'))
+        elif "Five Drawer" in s:  tags.append(('feature', '5 Drawer'))
+        elif "Six Drawer" in s:   tags.append(('feature', '6 Drawer'))
+        setvals("Bedroom", "Chest")
     elif "Dresser" in s:
-        if "Fireplace Option" in s: feature = "with Fireplace"
+        if "Fireplace Option" in s: feature = "w/ Fireplace"
         if "Youth" in s:
             setvals("Youth", "Dresser")
         else:
             setvals("Bedroom", "Dresser")
     elif "Desk" in s:
         if "Bedroom" in s:
-            if "Hutch" in s:
-                setvals('Bedroom', 'Hutch')
-            else:
-                setvals('Bedroom', 'Desk')
-        if "Adjustable" in s: tags.append(('feature', 'Adjustable Height'))
-        if "Drop Front" in s: tags.append(('feature', 'Drop Front'))
-        if "Large" in s: size = 'Large'
-        if "Small" in s: size = 'Small'
-        if "Drop Front" in s: tags.append(('feature', 'Drop Front'))
-        if 'Desk and Hutch' in s:
-            setvals("Office", "Desk")
-        elif 'Hutch' in s:
-            if "Tall" in s: tags.append(('feature', 'Tall'))
-            if "Short" in s: tags.append(('feature', 'Short'))
-            setvals("Office", "Hutch")
+            if "Desk Hutch" in s: feature = "w/ Hutch"
+            setvals('Bedroom', 'Desk')
         else:
-            setvals("Office", "Desk")
+            if "Adjustable" in s: tags.append(('feature', 'Adjustable Height'))
+            if "Drop Front" in s: tags.append(('feature', 'Drop Down Front'))
+            if "Bookcase" in s: tags.append(('feature', 'Bookcase'))
+            if "Large" in s: size = 'Large'
+            elif "Small" in s: size = 'Small'
+            if 'Desk and Hutch' in s:
+                setvals("Office", "Desk")
+            elif 'Hutch' in s:
+                if "Tall" in s: tags.append(('feature', 'Tall'))
+                if "Short" in s: tags.append(('feature', 'Short'))
+                setvals("Office", "Hutch")
+            else:
+                setvals("Office", "Desk")
+    elif "TV Stand" in s:
+        if 'w/' in s:
+            stuff = s.split('/w')[-1]
+            stuff.replace(' OPT', '')
+            stuff.replace(' Option', '')
+            stuff.replace("FRPL", "Fireplace")
+            feature = "w/ %s" % (stuff)
+        setvals("Living", "TV Console")
+    elif "Bench" in s:
+        if "Upholstered" in s: tags.append(('feature', 'Upholstered'))
+        if "Storage Bench" in s:
+            setvals("Living", "Storage Bench")
+        elif "Park Bench" in s:
+            setvals("Outdoor", "Outdoor Bench")
+        else:
+            setvals("Living", "Bench")
+    elif "Pillow" in s:
+        raise SkipExc(s)
+    elif "Bridge" in s:
+        if "Sliding Doors" in s: tags.append(('feature', 'Sliding Doors'))
+        setvals("Living", "Bridge")
+    elif "Loft Bed" in s:
+        if "Twin" in s: size = "Twin"
+        setvals("Youth", "Loft Bed")
+    elif "Caster Bed" in s:
+        if "Twin" in s: size = "Twin"
+        setvals("Youth", "Daybed")
+    elif "Bookcase" in s:
+        if "Loft" in s:
+            # this is actually a bed
+            tags.append(('feature', 'Bookcase'))
+            setvals("Youth", "Loft Bed")
+        else:
+            setvals("Youth", "Book Case")
 
 
     if not ret[0] or not ret[1]:
