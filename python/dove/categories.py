@@ -43,7 +43,7 @@ _categories = {
             "tags": ["Counter Height Table"],
         },
         "Dining Tables": {
-            "types": ["Table"],
+            "types": ["Dining Table"],
             "tags": ["Dining Table"],
         },
         "Kitchen Islands": {
@@ -54,7 +54,7 @@ _categories = {
         },
         "Dining Misc.": {
             "types": ["Display Cabinet", "Mirror", "Lazy Susan", "Mini Server",
-                      "Wine Cabinet", "Wine Rack"]
+                      "Wine Cabinet", "Wine Rack", "Bench"]
         },
     },
     "Living": {

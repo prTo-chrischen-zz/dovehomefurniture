@@ -35,6 +35,7 @@ ignores = (
     'w/UMB OPT',
     'Replaced by W635-134 Pier', # Old category they're too lazy to remove
     "HYBRID UNIT", # Store display units for mattress cross sections
+    ""
 )
 
 # trivial mappings that don't require code
@@ -98,26 +99,28 @@ def figure_out(s, out_data=None):
             setvals("Office", "Cabinet")
         if 'Table' in s:
             setvals("Office", "Corner Table")
-    elif "Dining" in s:
+    elif "Dining" in s or 'DRM' in s:
         if "Chair" in s:
             if "UPH" in s: tags.append(('feature', 'Upholstered'))
             if 'Arm' in s: feature = 'Arm'
             if 'Side' in s: feature = 'Side'
             if '(2/CN)' in s: name_suffix = "x2"
             setvals("Dining", "Chair")
-        elif "Table" in s:
+        elif "Table" in s or 'TBL' in s:
             if "Dining Table" in s:
                 if "Rectangular" in s: tags.append(('feature', 'Rectangular'))
             elif "Dining Room" in s:
-                if "Base" in s: name_suffix = "(Base Only)"
-                if "Top" in s: name_suffix = "(Top Only)"
+                if "Top" in s: raise SkipExc(s)
                 if "6/CN" in s: name_suffix = "(6 Piece)"
                 if "7/CN" in s: name_suffix = "(7 Piece)"
                 if "EXT" in s: tags.append(('feature', 'Extendable'))
                 if "RECT" in s: tags.append(('feature', 'Rectangular'))
                 if "Rectangular" in s: tags.append(('feature', 'Rectangular'))
                 if "Round" in s: tags.append(('feature', 'Round'))
-            setvals("Dining", "Table")
+            setvals("Dining", "Dining Table")
+        elif 'Bench' in s:
+            if 'UPH' in s: tags.append(('feature', 'Upholstered'))
+            setvals("Dining", "Bench")
     elif "Recliner" in s:
         if 'LAF' in s or 'RAF' in s:
             raise SkipExc(s)
@@ -288,6 +291,8 @@ def figure_out(s, out_data=None):
         if "with Storage" in post: tags.append(('feature', 'Storage'))
         if pre: tags.append(('feature', pre))
         setvals("Living", "Coffee Table")
+    elif "Night" in s:
+
     elif "Table" in s:
         # Table set we are now dealing with can be gotten with command below: since the "-v" terms will all by caught by above
         # cat types.txt | grep "Table" | grep -v "Home Office" | grep -v "Dining" | grep -v "Lamp" | grep -v "Sofa" | grep -v "Cocktail T"
@@ -308,12 +313,33 @@ def figure_out(s, out_data=None):
             setvals("Living", "Accent Table")
         elif "Console" in s:
             setvals("Living", "Console Table")
-        elif s == "Bar Table":
+        elif "Bar Table" in s:
             # these are outdoor items
             setvals("Outdoor", "Outdoor Table")
+        elif "Counter Table" in s or "Counter T" in s:
+            if 'Round' in s or 'RND' in s: tags.append(('shape', 'Round'))
+            if 'Square' in s: tags.append(('shape', 'Square'))
+            if 'Rectangular' in s or 'RECT' in s: tags.append(('shape', 'Rectangular'))
+            if 'Storage' in s: tags.append(('feature'), 'Storage')
+            if '5/CN' in s: name_suffix = "Set of 5"
+            setvals("Dining", "Table")
+        elif "Fire Pit" in s:
+            # Outdoor tables again
+            setvals("Outdoor", "Outdoor Table")
+        else:
+            if "RECT" in s: tags.append(('shape', 'Rectangular'))
+            if "Round" in s: tags.append(('shape', 'Round'))
+            if "EXT" in s: tags.append(('feature', 'Extendable'))
+            # Umbrella is outdoors
+            if "UMB" in s: raise SkipExc(s)
+            # Night Table == Nightstand, to be safe here
+            if "Night" in s: raise SkipExc(s)
+            # Random shit
+            if "OTTO" in s: raise SkipExc(s)
+            setvals("Living", "Table")
 
         # TODO finish this section
-        raise Exception("Tables aren't done yet")
+        # raise Exception("Tables aren't done yet")
 
 
     if not ret[0] or not ret[1]:
