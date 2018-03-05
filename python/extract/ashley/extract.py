@@ -163,7 +163,7 @@ def figure_out(s, out_data=None):
         if 'w/' in post:
             tags.append(('feature', post.replace('w/', '')))
         setvals("Bedroom", "Media Chest")
-    elif "Night Stand" in s:
+    elif "Night Stand" in s or "Night Table" in s:
         pre, post = breakdown(s, "Night Stand")
         if pre:
             tags.append(('feature', pre))
@@ -291,8 +291,6 @@ def figure_out(s, out_data=None):
         if "with Storage" in post: tags.append(('feature', 'Storage'))
         if pre: tags.append(('feature', pre))
         setvals("Living", "Coffee Table")
-    elif "Night" in s:
-
     elif "Table" in s:
         # Table set we are now dealing with can be gotten with command below: since the "-v" terms will all by caught by above
         # cat types.txt | grep "Table" | grep -v "Home Office" | grep -v "Dining" | grep -v "Lamp" | grep -v "Sofa" | grep -v "Cocktail T"
@@ -337,9 +335,6 @@ def figure_out(s, out_data=None):
             # Random shit
             if "OTTO" in s: raise SkipExc(s)
             setvals("Living", "Table")
-
-        # TODO finish this section
-        # raise Exception("Tables aren't done yet")
 
 
     if not ret[0] or not ret[1]:
