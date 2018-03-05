@@ -35,7 +35,7 @@ ignores = (
     'w/UMB OPT',
     'Replaced by W635-134 Pier', # Old category they're too lazy to remove
     "HYBRID UNIT", # Store display units for mattress cross sections
-    ""
+    'Rails', # We only want Headboards to identify beds
 )
 
 # trivial mappings that don't require code
@@ -141,7 +141,7 @@ def figure_out(s, out_data=None):
         if 'Wide' in s: tags.append(('feature', 'Wide'))
         if 'Zero Wall' in s: tags.append(('feature', 'Zero Wall'))
         setvals("Living", "Recliner")
-    elif "Headboard" in s:
+    elif "Headboard" in s or "HDBD" in s:
         if 'Queen/Full' in s:  size = ['Queen', 'Full']
         elif 'Queen/King' in s: size = ['Queen', 'King']
         elif 'Twin/Full' in s: size = ['Twin', 'Full']
@@ -152,7 +152,7 @@ def figure_out(s, out_data=None):
         elif 'Queen' in s: size = 'Queen'
         elif 'King' in s: size = 'King'
         if 'UPH' in s or 'Upholstered' in s: tags.append(('feature', 'Upholstered'))
-        for pre in ('Bookcase', 'Panel', 'Poster', 'Sleigh', 'Storage', 'Louvered', 'Slat'):
+        for pre in ('Bookcase', 'Panel', 'Poster', 'Sleigh', 'Storage', 'Louvered', 'Slat', 'Canopy', 'Mansion', 'Metal'):
             if pre in s:
                 name_prefix = pre
                 tags.append(('feature', pre))
@@ -330,6 +330,57 @@ def figure_out(s, out_data=None):
             # Random shit
             if "OTTO" in s: raise SkipExc(s)
             setvals("Living", "Table")
+    elif "Otto" in s:
+        # This is a Love/Chaise/otto set
+        if "/Otto" in s: raise SkipExc(s) 
+        if "2/CN" in s: name_suffix = "x2"
+        if "Accent" in s: tags.append(('feature', 'Accent'))
+        if "Storage" in s: tags.append(('feature', 'Storage'))
+        if "Oversized" in s: tags.append(('feature', 'Oversized'))
+        # We're not selling only the cushion
+        if "Seat Cushion" in s: raise SkipExc(s)
+        setvals("Living", "Ottoman")
+    elif "Chest" in s:
+        if "Accent" in s: tags.append(('feature', 'Accent'))
+        if "Door" in s: tags.append(('feature', 'Has Door'))
+        if "Dressing" in s: tags.append(('feature', 'Dressing'))
+        if "Lingerie" in s: tags.append(('feature', 'Lingerie'))
+        if "Fireplace Option" in s: feature = "with Fireplace"
+        if "Two Drawer" in s: tags.append(('feature', 'Two Drawer'))
+        if "Three Drawer" in s: tags.append(('feature', 'Three Drawer'))
+        if "Four Drawer" in s: tags.append(('feature', 'Four Drawer'))
+        if "Five Drawer" in s: tags.append(('feature', 'Five Drawer'))
+        if "Six Drawer" in s: tags.append(('feature', 'Six Drawer'))
+        # Media chest is different
+        if "Media Chest" in s:
+            setvals("Bedroom", "Media Chest")
+        else:
+            setvals("Bedroom", "Chest")
+    elif "Dresser" in s:
+        if "Fireplace Option" in s: feature = "with Fireplace"
+        if "Youth" in s:
+            setvals("Youth", "Dresser")
+        else:
+            setvals("Bedroom", "Dresser")
+    elif "Desk" in s:
+        if "Bedroom" in s:
+            if "Hutch" in s:
+                setvals('Bedroom', 'Hutch')
+            else:
+                setvals('Bedroom', 'Desk')
+        if "Adjustable" in s: tags.append(('feature', 'Adjustable Height'))
+        if "Drop Front" in s: tags.append(('feature', 'Drop Front'))
+        if "Large" in s: size = 'Large'
+        if "Small" in s: size = 'Small'
+        if "Drop Front" in s: tags.append(('feature', 'Drop Front'))
+        if 'Desk and Hutch' in s:
+            setvals("Office", "Desk")
+        elif 'Hutch' in s:
+            if "Tall" in s: tags.append(('feature', 'Tall'))
+            if "Short" in s: tags.append(('feature', 'Short'))
+            setvals("Office", "Hutch")
+        else:
+            setvals("Office", "Desk")
 
 
     if not ret[0] or not ret[1]:
@@ -367,7 +418,7 @@ for sku, item in items.iteritems():
 
     additional_info = {}
     try:
-        category, product_type = figure_out(pt_str, additional_info)
+        category, product_type = figure_out(pt_str.encode('ascii', 'ignore'), additional_info)
     except SkipExc as e:
         print "Skip:", str(e)
         continue
@@ -383,7 +434,7 @@ for sku, item in items.iteritems():
     name_parts.append(product_type)
     if 'name_suffix' in additional_info:
         name_parts.append(additional_info['name_suffix'])
-    name = " ".join(name_parts).encode('utf-8').strip()
+    name = " ".join(name_parts).encode('ascii', 'ignore')
     print pt_str
     print "    ", name, sku, additional_info
 

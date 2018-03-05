@@ -12,6 +12,9 @@ _categories = {
         "Benches": {
             "types": ["Bench"],
         },
+        "Desks": {
+            "types": ["Desk", "Hutch"],
+        },
         "Chests": {
             "types": ["Chest"],
         },
@@ -21,7 +24,7 @@ _categories = {
         "Headboards": {
             "types": ["Headboard"],
         },
-        "Media Chests":{
+        "Media Chests": {
             "types": ["Media Chest"],
         },
         "Nightstands": {
@@ -109,7 +112,7 @@ _categories = {
             "types": ["Bookshelf"]
         },
         "Desks": {
-            "types": ["Desk"]
+            "types": ["Desk", "Hutch"]
         },
         "File Cabinets": {
             "types": ["File Cabinet", "Cabinet"]
