@@ -383,7 +383,7 @@ for sku, item in items.iteritems():
     name_parts.append(product_type)
     if 'name_suffix' in additional_info:
         name_parts.append(additional_info['name_suffix'])
-    name = " ".join(name_parts)
+    name = " ".join(name_parts).encode('utf-8').strip()
     print pt_str
     print "    ", name, sku, additional_info
 
