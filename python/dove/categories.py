@@ -39,11 +39,11 @@ _categories = {
             "types": ["Chair", "Stool"],
         },
         "Counter Height Tables": {
-            "types": ["Table"],
+            "types": ["Counter Height Table"],
             "tags": ["Counter Height Table"],
         },
         "Dining Tables": {
-            "types": ["Dining Table"],
+            "types": ["Table"],
             "tags": ["Dining Table"],
         },
         "Kitchen Islands": {

@@ -117,7 +117,7 @@ def figure_out(s, out_data=None):
                 if "RECT" in s: tags.append(('feature', 'Rectangular'))
                 if "Rectangular" in s: tags.append(('feature', 'Rectangular'))
                 if "Round" in s: tags.append(('feature', 'Round'))
-            setvals("Dining", "Dining Table")
+            setvals("Dining", "Table")
         elif 'Bench' in s:
             if 'UPH' in s: tags.append(('feature', 'Upholstered'))
             setvals("Dining", "Bench")
@@ -292,14 +292,14 @@ def figure_out(s, out_data=None):
         if pre: tags.append(('feature', pre))
         setvals("Living", "Coffee Table")
     elif "Table" in s:
+        # Deal with shapes first
+        if 'Rectangular' in s or 'RECT' in s: tags.append(('shape', 'Rectangular'))
+        elif 'Round' in s:     tags.append(('shape', 'Round'))
+        elif 'Square' in s:    tags.append(('shape', 'Square'))
+        elif 'Triangle' in s:  tags.append(('shape', 'Triangle'))
         # Table set we are now dealing with can be gotten with command below: since the "-v" terms will all by caught by above
         # cat types.txt | grep "Table" | grep -v "Home Office" | grep -v "Dining" | grep -v "Lamp" | grep -v "Sofa" | grep -v "Cocktail T"
         if "End Table" in s:
-            # handle shapes
-            if 'Rectangular' in s: tags.append(('shape', 'Rectangular'))
-            elif 'Round' in s:     tags.append(('shape', 'Round'))
-            elif 'Square' in s:    tags.append(('shape', 'Square'))
-            elif 'Triangle' in s:  tags.append(('shape', 'Triangle'))
             # handle sets
             if "Nesting" in s:
                 name_prefix = "Nesting"
@@ -315,18 +315,13 @@ def figure_out(s, out_data=None):
             # these are outdoor items
             setvals("Outdoor", "Outdoor Table")
         elif "Counter Table" in s or "Counter T" in s:
-            if 'Round' in s or 'RND' in s: tags.append(('shape', 'Round'))
-            if 'Square' in s: tags.append(('shape', 'Square'))
-            if 'Rectangular' in s or 'RECT' in s: tags.append(('shape', 'Rectangular'))
             if 'Storage' in s: tags.append(('feature'), 'Storage')
             if '5/CN' in s: name_suffix = "Set of 5"
-            setvals("Dining", "Table")
+            setvals("Dining", "Counter Height Table")
         elif "Fire Pit" in s:
             # Outdoor tables again
-            setvals("Outdoor", "Outdoor Table")
+            setvals("Outdoor", "Fire Pit Table")
         else:
-            if "RECT" in s: tags.append(('shape', 'Rectangular'))
-            if "Round" in s: tags.append(('shape', 'Round'))
             if "EXT" in s: tags.append(('feature', 'Extendable'))
             # Umbrella is outdoors
             if "UMB" in s: raise SkipExc(s)
