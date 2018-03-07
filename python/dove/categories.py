@@ -102,14 +102,16 @@ _categories = {
                 "Pier Cabinet",
                 "Bridge",
                 "Hutch",
-                "Book Shelf",
                 "Media Cabinet",
             ]
         },
+        "Shelves": {
+            "types": ["Book Shelf", "Shelf"]
+        }
     },
     "Office": {
         "Bookshelves": {
-            "types": ["Bookshelf"]
+            "types": ["Book Shelf"],
         },
         "Desks": {
             "types": ["Desk", "Hutch"]

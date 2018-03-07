@@ -16,57 +16,103 @@ groups = data['groups']
 # should be sku -> <xml Element>
 items = data['items']
 
-
 # substrings that, if found, will cause an item to be skipped
 ignores = (
     'accessory set',
     'adjustable base',
+    'adjustable foot base',
     'adjustable head base',
     'back cushion',
     'bar with marble top',
+    'basket',
     'bench seat cushion',
+    'better than down',
+    'beverage tub',
+    'bolt on bed frame',
     'bowl',
+    'Box (Set of 2)',
     'bracket',
     'candle holder',
+    'console with drink holders',
     'console with storage',
     'corner wedge',
+    'corner with cushion',
+    'comforter',
     'coverlet set',
     'credenza',
     ' drawer box',
     'duvet cover set',
+    'EVC Case Secure Kit',
+    'finial',
+    'fireplace insert',
+    'fire column',
     ' footboard',
     ' foundation',
     ' ftbd',
+    'integrated audio',
     'jar',
+    'lantern set',
+    'loft bin storage',
+    'loft drawer storage',
+    'lounge w/cushion', # outdoor
     ' mattress',
+    'metal frame',
+    'milk can set',
     'panel rails',
+    ' panels',
+    'patio heater',
     'pendant light',
+    'photo holder',
+    'platform pedestal',
+    'podium',
     'poster rails',
     ' posts',
     'photo frame',
+    'pop stand',
+    'poster canopy',
+    'P.O.S. Station', # wtf is this?
     'quilt set',
+    'rails', # We only want Headboards to identify beds
+    ' riser',
+    'roll slat',
     'sculpture',
     'seat cushion',
+    ' slats',
     'sofa/love sec/end tbls', # bullshit outdoor crap
-    'tray ',
-    'throw ',
+    'storage box',
+    'storage drawers',
+    'storage shelf',
+    'storage step',
+    'swing',
+    'tob set', # beddings
+    'tray',
+    'throw',
     ' trundle frame',
+    ' trundle panel',
+    'umbrella',
+    'urn',
     'vase',
+    'vanity',
     'w/UPH Stools (3/CN)',
     'w/UMB OPT',
+    'wall clock',
     'wall decor',
+    'wall shelf',
     'wall sconce',
     'Replaced by W635-134 Pier', # Old category they're too lazy to remove
     "HYBRID UNIT", # Store display units for mattress cross sections
-    'Rails', # We only want Headboards to identify beds
 )
 
 # trivial mappings that don't require code
 cat_map = {
+    'Console': ('Living', 'Cabinet'),
     'Curio': ('Dining', 'Curio'),
     'Medium Rug': ('Living', 'Rug'),
     'Kitchen Cart': ('Dining', 'Kitchen Cart'),
+    'Kitchen Island': ('Dining', 'Kitchen Island'),
     'Pouf': ('Living', 'Pouf'),
+    'Serving Cart': ('Dining', 'Server'),
+    'Shelf': ('Living', 'Shelf'),
     'Sofa': ('Living', 'Sofa'),
 }
 
@@ -172,6 +218,8 @@ def figure_out(s, out_data=None):
             setvals("Dining", "Buffet")
         elif "China" in s:
             setvals("Dining", "Display Cabinet")
+        elif "Hutch" in s:
+            setvals("Dining", "Hutch")
     elif "Recliner" in s or "REC" in s:
         if 'LAF' in s or 'RAF' in s:
             raise SkipExc(s)
@@ -209,6 +257,11 @@ def figure_out(s, out_data=None):
                 tags.append(('feature', pre))
                 break
         setvals("Bedroom", "Bed")
+    elif s.endswith("Upholstered Bed"):
+        if "Queen" in s:  size = "Queen"
+        elif "King" in s: size = "King"
+        tags.append(('feature', 'Upholstered'))
+        setvals("Bedroom", "Bed")
     elif "Under Bed Storage" in s:
         # these are optional storage units for beds, add them as options
         if 'Queen/King' in s: size = ['Queen', 'King']
@@ -222,7 +275,8 @@ def figure_out(s, out_data=None):
             tags.append(('feature', post.replace('w/', '')))
         setvals("Bedroom", "Media Chest")
     elif "Night Stand" in s or "Night Table" in s:
-        pre, post = breakdown(s, "Night Stand")
+        if "Night Stand" in s: pre, post = breakdown(s, "Night Stand")
+        elif "Night Table" in s: pre, post = breakdown(s, "Night Table")
         if pre:
             tags.append(('feature', pre))
         if post:
@@ -317,13 +371,6 @@ def figure_out(s, out_data=None):
     elif "Sleeper" in s and "Armless" in s:
         if "Full" in s: size = "Full"
         setvals('Living', 'Sectional')
-    # Putting this in Accessories for now, since technically not 'furniture'
-    elif "Comforter" in s:
-        if "King" in s: size = "King"
-        if "Queen" in s: size = "Queen"
-        if "Full" in s: size = "Full"
-        if "Twin" in s: size = "Twin"
-        setvals('Accessories', 'Bedding')
     # A pier is a tower of a home entertainment center; TV goes in middle of two Piers
     elif "Pier" in s:
         if "Right" in s: tags.append(('feature', 'Right side'))
@@ -368,6 +415,7 @@ def figure_out(s, out_data=None):
         pre, post = breakdown(s, "Cocktail TBL" if "TBL" in s else "Cocktail Table")
         if "with Storage" in post: tags.append(('feature', 'Storage'))
         if pre: tags.append(('feature', pre))
+        if "Stools" in s: name_suffix = "Set"
         setvals("Living", "Coffee Table")
     elif "Table" in s or "TBL" in s:
         # Deal with shapes first
@@ -469,8 +517,11 @@ def figure_out(s, out_data=None):
     elif "Loft Bed" in s:
         if "Twin" in s: size = "Twin"
         setvals("Youth", "Loft Bed")
-    elif "Caster Bed" in s:
+    elif "Caster Bed" in s or s in ("Daybed", "Day Bed", "Metal Day Bed with Deck"):
         if "Twin" in s: size = "Twin"
+        setvals("Youth", "Daybed")
+    elif s == "Daybed Trundle Storage":
+        feature = "w/ Storage"
         setvals("Youth", "Daybed")
     elif "Bookcase" in s:
         if "Loft" in s:
@@ -479,7 +530,15 @@ def figure_out(s, out_data=None):
             setvals("Youth", "Loft Bed")
         else:
             setvals("Youth", "Book Case")
-
+    elif "Bunk Bed" in s:
+        # only want it if it ends with "Bunk Bed", otherwise throw it out
+        # because it's something like "Bunk Bed Slats"
+        if s.endswith("Bunk Bed") or s.endswith('w/Ladder'):
+            if 'Twin/Full' in s: size = 'Twin/Full'
+            elif 'Twin/Twin' in s: size = 'Twin/Twin'
+            setvals("Youth", "Bunk Bed")
+        else:
+            raise SkipExc(s)
 
     if not ret[0] or not ret[1]:
         raise TypeError(s)
