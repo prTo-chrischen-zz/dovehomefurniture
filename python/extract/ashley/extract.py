@@ -577,7 +577,7 @@ for sku, item in items.iteritems():
     try:
         category, product_type = figure_out(pt_str.encode('ascii', 'ignore'), additional_info)
     except SkipExc as e:
-        print "Skip:", str(e)
+        #print "Skip:", str(e)
         continue
     except TypeError as e:
         print sku
@@ -592,19 +592,14 @@ for sku, item in items.iteritems():
     if 'name_suffix' in additional_info:
         name_parts.append(additional_info['name_suffix'])
     name = " ".join(name_parts).encode('ascii', 'ignore')
-    print pt_str
-    print "    ", name, sku, additional_info
+
+    color = item.get('itemColor')
+    additional_info['color'] = color
+
+    print "%-46s%-40s%-10s %s" % (name, pt_str, sku, additional_info)
 
     continue
 
-    if 'size' in additional_info:
-        if isinstance(list, additional_info['size']):
-            # TODO create two variants
-            pass
-        else:
-            # make one variant
-            pass
-
     doveprod.get_or_make_product(
-        product_key=pkey,
+        product_key=name,
         name=name,)
