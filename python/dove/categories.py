@@ -122,6 +122,9 @@ _categories = {
         "Office Chairs": {
             "types": ["Office Chair"]
         },
+        "Office Tables": {
+            "types": ["Office Table"]
+        },
     },
     "Youth": {
         "Beds": {
@@ -179,18 +182,22 @@ _categories = {
     },
     "Outdoor": {
         "Outdoor Benches": { "types": ["Outdoor Bench"] },
-        "Outdoor Tables": { "types": ["Outdoor Table"] },
+        "Outdoor Chairs": {"types": ["Outdoor Chair"]},
+        "Outdoor Tables": {
+            "types": ["Outdoor Table", "Fire Pit Table"]
+        },
     },
     "Accessories": {
         "Lamps": {"types": ["Lamp"]},
+        "Mirrors": {"types": ["Mirror"]},
         "Rugs": {"types": ["Rug"]},
         "Under Bed Storage": {"types": ["Under Bed Storage"]},
+        "Wall Decor": {"types": ["Wall Decor"]},
     },
 }
 ''' TODO
     "Outdoor": {
         "Outdoor Benches",
-        "Outdoor Chairs",
         "Outdoor Coffee Sets",
         "Outdoor Daybeds",
         "Outdoor Dining Sets",
@@ -273,7 +280,7 @@ def resolve(name, category):
     if name not in _valid_types[category]:
         raise InvalidProductTypeError(
             "'%s' couldn't be resolved to a valid category string."
-            " Update the aliases dict." % (name))
+            " Update the types dict in '%s'" % (name, category))
 
     return name
 

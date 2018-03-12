@@ -1,6 +1,7 @@
 import cPickle as pickle
+import math
+import os
 import sys
-import xml.etree.ElementTree as ET
 from pprint import pprint
 
 import dove.product as doveprod
@@ -96,7 +97,6 @@ ignores = (
     'w/UPH Stools (3/CN)',
     'w/UMB OPT',
     'wall clock',
-    'wall decor',
     'wall shelf',
     'wall sconce',
     'Replaced by W635-134 Pier', # Old category they're too lazy to remove
@@ -107,7 +107,7 @@ ignores = (
 cat_map = {
     'Console': ('Living', 'Cabinet'),
     'Curio': ('Dining', 'Curio'),
-    'Medium Rug': ('Living', 'Rug'),
+    'Medium Rug': ('Accessories', 'Rug'),
     'Kitchen Cart': ('Dining', 'Kitchen Cart'),
     'Kitchen Island': ('Dining', 'Kitchen Island'),
     'Pouf': ('Living', 'Pouf'),
@@ -150,19 +150,18 @@ def figure_out(s, out_data=None):
     name_prefix = None
     name_suffix = None
 
-    if "Loveseat" in s:
-        # tease out the size/features
-        pre, post = breakdown(s, "Loveseat")
-        if 'cushion' in post.lower() and '/' not in post:
+    if "loveseat" in low_s:
+        # only care about individual loveseats, other things are
+        # components of sectionals
+        if s in ['Loveseat', 'Reclining Loveseat', 'Reclining Power Loveseat']:
+            if "Reclining" in s or "REC" in s:
+                tags.append(('feature', 'Reclining'))
+            if "Power" in s:
+                tags.append(('feature', "Power"))
+                feature = "Power"
+            setvals("Living", "Love Seat")
+        else:
             raise SkipExc(s)
-        setvals("Living", "Loveseat")
-    # Because some fucking idiot decided to put one type in all caps
-    elif "LOVESEAT" in s:
-        # tease out the size/features
-        pre, post = breakdown(s, "LOVESEAT")
-        if 'cushion' in post.lower() and '/' not in post:
-            raise SkipExc(s)
-        setvals("Living", "Loveseat")
     elif "Home Office" in s :
         if 'Desk Chair' in s:
             if '(2/CN)' in s: name_suffix = "x2"
@@ -178,7 +177,7 @@ def figure_out(s, out_data=None):
         elif 'Cabinet' in s:
             setvals("Office", "Cabinet")
         elif 'Table' in s:
-            setvals("Office", "Corner Table")
+            setvals("Office", "Office Table")
 
     elif "Dining" in s or 'DRM' in s:
         if "Chair" in s:
@@ -220,7 +219,7 @@ def figure_out(s, out_data=None):
             setvals("Dining", "Display Cabinet")
         elif "Hutch" in s:
             setvals("Dining", "Hutch")
-    elif "Recliner" in s or "REC" in s:
+    elif "Recliner" in s or 'RECLINER' in s or "Rocker REC" in s:
         if 'LAF' in s or 'RAF' in s:
             raise SkipExc(s)
         if 'Armless' in s: tags.append(('feature', 'Armless'))
@@ -237,14 +236,16 @@ def figure_out(s, out_data=None):
             tags.append(('feature', 'Power'))
         if 'Power Lift' in s: tags.append(('feature', 'Power Lift'))
         if 'Swivel' in s: tags.append(('feature', 'Swivel'))
-        if 'Wide' in s: tags.append(('feature', 'Wide'))
+        if 'Wide' in s:
+            name_prefix = "Wide"
+            tags.append(('feature', 'Wide'))
         if 'Zero Wall' in s: tags.append(('feature', 'Zero Wall'))
         setvals("Living", "Recliner")
     elif "Headboard" in s or "HDBD" in s:
         if 'Queen/Full' in s:  size = ['Queen', 'Full']
         elif 'Queen/King' in s: size = ['Queen', 'King']
         elif 'Twin/Full' in s: size = ['Twin', 'Full']
-        elif 'KG/CK' in s or 'K/CK' in s or 'King/Cal King' in s:
+        elif 'KG/CK' in s or 'K/CK' in s or 'King/C. King' in s:
             size = ['King', 'C. King']
         elif 'Twin' in s: size = 'Twin'
         elif 'Full' in s: size = 'Full'
@@ -283,12 +284,16 @@ def figure_out(s, out_data=None):
             raise TypeError(s)
         setvals("Bedroom", "Nightstand")
     elif "Chair" in s:
-        pre, post = breakdown(s, "Chair")
-        if pre:
-            tags.append(('feature', pre))
-        if post:
-            feature = post
-        setvals("Living", "Chair")
+        if "Swivel" in s: tags.append(('feature', "Swivel"))
+        if '2/CN' in s: name_suffix = 'x2'
+        elif '4/CN' in s: name_suffix = 'x4'
+        if 'UPH' in s or 'Upholstered' in s: tags.append(('feature', 'Upholstered'))
+        if 'Accent' in s or s=='Chair':
+            setvals("Living", "Chair")
+        elif 'Lounge' in s or 'Sling' in s:
+            setvals("Outdoor", "Outdoor Chair")
+        else:
+            raise SkipExc(s)
     elif "Stool" in s and "Stools" not in s:
         pre, post = breakdown(s, "Stool")
         if 'UPH' in pre:
@@ -308,7 +313,7 @@ def figure_out(s, out_data=None):
         if   '2/CN' in s: name_suffix = "x2"
         elif '4/CN' in s: name_suffix = "x4"
         setvals("Dining", "Stool")
-    elif "Wall Art" in s:
+    elif "Wall Art" in s or "Wall Decor" in s:
         if   '2/CN' in s: name_suffix = "x2"
         elif '3/CN' in s: name_suffix = "x3"
         elif '4/CN' in s: name_suffix = "x4"
@@ -331,7 +336,9 @@ def figure_out(s, out_data=None):
             if "Power" in s:
                 tags.append(('feature', "Power"))
                 feature = "Power"
-            if "Sofa Chaise" in s: tags.append(('feature', "Chaise"))
+            if "Sofa Chaise" in s:
+                name_suffix = "Chaise"
+                tags.append(('feature', "Chaise"))
             if "Sleeper" in s:
                 tags.append(('feature', "Sleeper"))
                 if "Twin" in s: size = "Twin"
@@ -373,8 +380,8 @@ def figure_out(s, out_data=None):
         setvals('Living', 'Sectional')
     # A pier is a tower of a home entertainment center; TV goes in middle of two Piers
     elif "Pier" in s:
-        if "Right" in s: tags.append(('feature', 'Right side'))
-        if "Left" in s: tags.append(('feature', 'Left side'))
+        if "Right" in s: feature = 'Right Side'
+        elif "Left" in s:  feature = 'Left side'
         if "Tall" in s: size = "Tall"
         setvals('Living', 'Pier Cabinet')
     elif "Cabinet" in s:
@@ -389,27 +396,26 @@ def figure_out(s, out_data=None):
             setvals('Living', 'Storage Cabinet')
     elif "Lamp" in s:
         # First, handle locations
-        if "Table" in s: tags.append(('feature', 'Table Lamp'))
-        if "Floor" in s: tags.append(('feature', 'Floor Lamp'))
-        if "Desk" in s: tags.append(('feature', 'Desk Lamp'))
-        if "Uplight" in s: tags.append(('feature', 'Uplight Lamp'))
-        if "Tray" in s: tags.append(('feature', 'Tray Lamp'))
-        if "Arc" in s: tags.append(('feature', 'Arc Lamp'))
-        # Is this how we want to handle materials?
+        for lamp_type in ('Table', 'Floor', 'Desk', 'Uplight', 'Tray', 'Arc'):
+            if lamp_type in s:
+                name_prefix = lamp_type
+                tags.append(('feature', '%s Lamp' % (lamp_type)))
+                break
+        # handle materials
         if "Acrylic" in s: tags.append(('material', 'Acrylic'))
-        if "Ceramic" in s: tags.append(('material', 'Ceramic'))
-        if "Crystal" in s: tags.append(('material', 'Crystal'))
-        if "Glass" in s: tags.append(('material', 'Glass'))
-        if "Metal" in s: tags.append(('material', 'Metal'))
-        if "Paper" in s: tags.append(('material', 'Paper'))
-        if "Poly" in s: tags.append(('material', 'Poly'))
-        if "Rattan" in s: tags.append(('material', 'Rattan'))
-        if "Shell" in s: tags.append(('material', 'Shell'))
-        if "Terracotta" in s: tags.append(('material', 'Terracotta'))
-        if "Wood" in s: tags.append(('material', 'Wood'))
+        elif "Ceramic" in s: tags.append(('material', 'Ceramic'))
+        elif "Crystal" in s: tags.append(('material', 'Crystal'))
+        elif "Glass" in s: tags.append(('material', 'Glass'))
+        elif "Metal" in s: tags.append(('material', 'Metal'))
+        elif "Paper" in s: tags.append(('material', 'Paper'))
+        elif "Poly" in s: tags.append(('material', 'Poly'))
+        elif "Rattan" in s: tags.append(('material', 'Rattan'))
+        elif "Shell" in s: tags.append(('material', 'Shell'))
+        elif "Terracotta" in s: tags.append(('material', 'Terracotta'))
+        elif "Wood" in s: tags.append(('material', 'Wood'))
         # Finally, handle counts
-        if "(2/CN)" in s: name_suffix = "x2"
-        if "(4/CN)" in s: name_suffix = "x4"
+        if "(2/CN)" in s:   name_suffix = "x2"
+        elif "(4/CN)" in s: name_suffix = "x4"
         setvals('Accessories', 'Lamp')
     elif "Cocktail T" in s:
         pre, post = breakdown(s, "Cocktail TBL" if "TBL" in s else "Cocktail Table")
@@ -458,11 +464,15 @@ def figure_out(s, out_data=None):
         # This is a Love/Chaise/otto set
         if "/Otto" in s: raise SkipExc(s)
         if "2/CN" in s: name_suffix = "x2"
-        if "Storage" in s: tags.append(('feature', 'Storage'))
+        if "Storage" in s:
+            tags.append(('feature', 'Storage'))
+            feature = "w/ Storage"
         setvals("Living", "Ottoman")
     elif "Chest" in s:
         if "Lingerie" in s: name_prefix = "Lingerie"
-        if "Door" in s: tags.append(('feature', 'Has Door'))
+        if "Door" in s:
+            feature = "w/ Door"
+            tags.append(('feature', 'Has Door'))
         if "Two Drawer" in s:     tags.append(('feature', '2 Drawer'))
         elif "Three Drawer" in s: tags.append(('feature', '3 Drawer'))
         elif "Four Drawer" in s:  tags.append(('feature', '4 Drawer'))
@@ -500,6 +510,10 @@ def figure_out(s, out_data=None):
             stuff.replace(' Option', '')
             stuff.replace("FRPL", "Fireplace")
             feature = "w/ %s" % (stuff)
+        if '60' in s:   size = '60"'
+        elif '72' in s: size = '72"'
+        elif 'Extra Large' in s: size = "Extra Large"
+        elif 'Large' in s:       size = "Large"
         setvals("Living", "TV Console")
     elif "Bench" in s:
         if "Upholstered" in s: tags.append(('feature', 'Upholstered'))
@@ -529,6 +543,9 @@ def figure_out(s, out_data=None):
             tags.append(('feature', 'Bookcase'))
             setvals("Youth", "Loft Bed")
         else:
+            if 'Small' in s: size = "Small"
+            elif 'Medium' in s: size = "Medium"
+            elif 'Large' in s: size = "Large"
             setvals("Youth", "Book Case")
     elif "Bunk Bed" in s:
         # only want it if it ends with "Bunk Bed", otherwise throw it out
@@ -551,7 +568,22 @@ def figure_out(s, out_data=None):
 
     return ret
 
+def calculate_price(price_str):
+    d = int(float(price_str) * 2)
+    # round to nearest 10
+    return int(math.ceil(d / 10.0)) * 10
+
+uid = 1
+
+ignore_skus = set([
+    'W697-34', # duplicate of W697-23
+])
+
 for sku, item in items.iteritems():
+
+    if sku in ignore_skus:
+        continue
+
     groupID = item.get('itemGroupCode')
     group = groups[groupID]
 
@@ -594,12 +626,85 @@ for sku, item in items.iteritems():
     name = " ".join(name_parts).encode('ascii', 'ignore')
 
     color = item.get('itemColor')
+
+    pricing = item.find('itemPricing')
+    price = None
+    if pricing is not None:
+        price = calculate_price(pricing.find('unitPrice').text)
+
+    # figure out the image
+    img_dir = '/Users/dcheng/desktop/ashley'
+    image_node = item.find('image')
+    image = None
+    if image_node is not None:
+        path = os.path.join(img_dir, image_node.get('url'))
+        if os.path.exists(path):
+            image = path
+        else:
+            print "[WARNING] no image %s" % path
+
+    # build up the description
+    description = None
+    fluff = item.find('itemFluff')
+    if fluff:
+        description = fluff.text
+    description_items = [f.text for f in item.findall('itemFeatures/itemFeature')]
+
+    weight = None
+    weight_node = item_ident.find("packageCharacteristics/packageDimensions/weight[@unitOfMeasure='Pounds']")
+    if weight_node is not None:
+        weight = weight_node.get('value')
+
+    dims = None
+    item_dims = item_ident.find("itemCharacteristics/itemDimensions/length[@unitOfMeasure='Inches']")
+    if item_dims is not None:
+        dims = '%s"W x %s"D x %s"H' % (
+                item_ident.find("itemCharacteristics/itemDimensions/length[@unitOfMeasure='Inches']").get("value"),
+                item_ident.find("itemCharacteristics/itemDimensions/depth[@unitOfMeasure='Inches']").get("value"),
+                item_ident.find("itemCharacteristics/itemDimensions/height[@unitOfMeasure='Inches']").get("value"),
+            )
+
     additional_info['color'] = color
+    #print "%-46s%-40s%-10s %s" % (name, pt_str, sku, additional_info)
 
-    print "%-46s%-40s%-10s %s" % (name, pt_str, sku, additional_info)
+    pkey = name
+    if (category=='Dining' and product_type=='Chair') \
+       or (category=='Living' and product_type=='Bench') \
+       or (category=='Living' and product_type=='Chair') \
+       or (category=='Living' and product_type=='Cabinet'):
+        # for certain product types, the source data doesn't give us a way
+        # to differentiate two products with the same name
+        pkey = name + " " + str(uid)
+        uid += 1
+    p = doveprod.get_or_make_product(
+            product_key=pkey,
+            name=name,
+            category=category,
+            product_type=product_type,
+            description=description,
+            vendor="Ashley",
+            style=style)
 
-    continue
+    sizes = additional_info.get('size', None)
+    if not isinstance(sizes, list):
+        sizes = [sizes]
+    for size in sizes:
+        # handle multiple sizes coming out of the product_type parsing
+        try:
+            p.add_variant(
+                size=size,
+                sku=sku,
+                price=price,
+                weight=weight,
+                dimensions=dims,
+                color=additional_info.get('color', None),
+                image=image,
+                feature=additional_info.get('feature', None))
+        except doveprod.VariantError as e:
+            print "[ERROR]", str(e)
+            continue
 
-    doveprod.get_or_make_product(
-        product_key=name,
-        name=name,)
+    for tag_type, value in additional_info.get('tags', []):
+        p.add_tag(tag_type, value)
+
+    p.set_description_items(description_items)

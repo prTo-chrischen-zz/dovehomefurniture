@@ -51,6 +51,7 @@ class Product(object):
         self.product_type = categories.resolve(product_type, category)
         self.category = category
         self.description = description
+        self.description_items = []
         self.style = style
         self.vendor = vendor
         self.colors = set()
@@ -170,10 +171,19 @@ class Product(object):
             'variants': self.build_variants(),
             }
 
+    def set_description_items(self, items):
+        self.description_items = items
+
     def build_description(self):
         desc = self.description
 
         desc = self.description.replace('\n', '<br/>')
+
+        if self.description_items:
+            desc += '<br/><br/><ul class="product-desc-list">'
+            for i in self.description_items:
+                desc += '<li>%s</li>' % (i)
+            desc += '</ul>'
 
         if self.sizes or self.dimensions:
             # build a table for displaying dimensions
