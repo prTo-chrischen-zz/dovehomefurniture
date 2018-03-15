@@ -35,11 +35,15 @@ _categories = {
         },
     },
     "Dining": {
-        "Buffets/Hutches/Curios": {
+        "Buffets, Hutches, Curios": {
             "types": ["Buffet", "Hutch", "Curio"],
         },
         "Chairs & Stools": {
-            "types": ["Chair", "Stool"],
+            "types": ["Stool"],
+            # in hindsight, we should've just made a Dining Chair product type
+            # instead of using type=="Chair"+tag=="dining", since we can't do
+            # complex predicates in Shopify
+            "tags": ["Dining Chair", "Dining Bench"]
         },
         "Counter Height Tables": {
             "types": ["Counter Height Table"],
@@ -50,12 +54,12 @@ _categories = {
             "tags": ["Dining Table"],
         },
         "Kitchen Islands": {
-            "types": ["Kitchen Island", "Kitchen Cart"],
+            "types": ["Kitchen Island"],
         },
-        "Servers": {
-            "types": ["Server"],
+        "Servers & Carts": {
+            "types": ["Kitchen Cart", "Server"],
         },
-        "Dining Misc.": {
+        "Dining Misc": {
             "types": ["Display Cabinet", "Mirror", "Lazy Susan", "Mini Server",
                       "Wine Cabinet", "Wine Rack", "Bench"]
         },
@@ -64,7 +68,7 @@ _categories = {
         "Cabinets": {
             "types": ["Storage Cabinet", "Cabinet"],
         },
-        "Chairs": {
+        "Living Chairs": {
             "types": ["Chair"],
         },
         "Chaises & Benches": {
@@ -89,7 +93,7 @@ _categories = {
         "Sectionals": {
             "types": ["Sectional"]
         },
-        "Living Tables": {
+        "Side Tables": {
             "types": ["Side Table", "Sofa Table", "Console Table", "Accent Table"]
         },
         "Sofas": {
@@ -109,15 +113,15 @@ _categories = {
             "types": ["Book Shelf", "Shelf"]
         }
     },
-    "Office": {
+    "Home Office": {
         "Bookshelves": {
             "types": ["Book Shelf"],
         },
         "Desks": {
-            "types": ["Desk", "Hutch"]
+            "types": ["Desk"]
         },
         "File Cabinets": {
-            "types": ["File Cabinet", "Cabinet"]
+            "types": ["File Cabinet"]
         },
         "Office Chairs": {
             "types": ["Office Chair"]
@@ -127,32 +131,28 @@ _categories = {
         },
     },
     "Youth": {
-        "Beds": {
+        "Youth Beds": {
             "types": ["Bed"],
             "tags": ["Youth"]
         },
         "Bunk Beds": {
             "types": ["Bunk Bed"]
         },
-        "Daybeds": {
-            "types": ["Daybed"],
-            "tags": ["Youth"]
-        },
         "Loft Beds": {
             "types": ["Loft Bed"]
         },
         "Trundle Beds": {
-            "types": ["Trundle Bed"]
+            "types": ["Trundle Bed", "Daybed"]
         },
-        "Chests": {
+        "Youth Chests": {
             "types": ["Chest"],
             "tags": ["Youth"]
         },
-        "Dressers & Mirrors": {
-            "types": ["Dresser", "Mirror"],
+        "Youth Dressers": {
+            "types": ["Dresser"],
             "tags": ["Youth"]
         },
-        "Nightstands": {
+        "Youth Nightstands": {
             "types": ["Nightstand"],
             "tags": ["Youth"]
         },
@@ -171,13 +171,15 @@ _categories = {
                 "Futon",
                 "Hutch",
                 "Media Chest",
+                "Mirror",
                 "Office Chair",
                 "Ottoman",
                 "Shelf",
                 "Table",
                 "Vanity",
             ],
-            "tags": ["Youth"],
+            # need to apply the Youth Misc tag when creating products
+            "tags": ["Youth", "Youth Misc"],
         }
     },
     "Outdoor": {

@@ -5,7 +5,7 @@ shopify_config.setup()
 
 
 filter_args = {
-    'vendor': 'Modus',
+    'product_type': 'Bench',
 }
 query_limit = 250
 
@@ -18,21 +18,12 @@ for page in xrange(1, (num_products/query_limit)+2):
                                     **filter_args)
     for product in products:
 
-        # figure out the collection from the title
-        t = product.title
-        parts = t.split(' ')
-
-        c = parts[0]
-        maybe = parts[1]
-
-        if c == 'St.':
-            c += maybe
-        elif maybe == 'II':
-            c += ' ' + maybe
-
-        # this is a comma separated string
-        tags = product.tags
-        tags += ', style:%s' % c
-        product.tags = tags
-        print t, '-->', tags
-        product.save()
+        tags = [i.strip() for i in product.tags.split(',')]
+        if 'dining' in tags:
+            print product.title
+            if 'Bench' in tags and 'Dining Bench' not in tags:
+                tags.remove('Bench')
+                tags.insert(0, 'Dining Bench')
+                new_tags = ', '.join(tags)
+                product.tags = tags
+                product.save()

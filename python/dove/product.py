@@ -175,9 +175,10 @@ class Product(object):
         self.description_items = items
 
     def build_description(self):
-        desc = self.description
-
-        desc = self.description.replace('\n', '<br/>')
+        if self.description:
+            desc = self.description.replace('\n', '<br/>')
+        else:
+            desc = ""
 
         if self.description_items:
             desc += '<br/><br/><ul class="product-desc-list">'
@@ -205,9 +206,7 @@ class Product(object):
 
         # because sometimes the descriptions or dimension text in the source
         # data can have bullshit characters, sanitize the bitch
-        decoded = desc.decode('utf-8', 'ignore')
-        encoded = decoded.encode('utf-8')
-
+        encoded = desc.encode('ascii', 'ignore')
         return encoded
 
     def build_options(self):
