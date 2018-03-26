@@ -18,8 +18,8 @@ _categories = {
         "Chests": {
             "types": ["Chest"],
         },
-        "Dressers & Mirrors": {
-            "types": ["Dresser", "Mirror"],
+        "Dressers": {
+            "types": ["Dresser"],
         },
         "Headboards": {
             "types": ["Headboard"],
@@ -39,11 +39,7 @@ _categories = {
             "types": ["Buffet", "Hutch", "Curio"],
         },
         "Chairs & Stools": {
-            "types": ["Stool"],
-            # in hindsight, we should've just made a Dining Chair product type
-            # instead of using type=="Chair"+tag=="dining", since we can't do
-            # complex predicates in Shopify
-            "tags": ["Dining Chair", "Dining Bench"]
+            "types": ["Stool", "Dining Chair", "Dining Bench"],
         },
         "Counter Height Tables": {
             "types": ["Counter Height Table"],
@@ -68,14 +64,14 @@ _categories = {
         "Cabinets": {
             "types": ["Storage Cabinet", "Cabinet"],
         },
-        "Living Chairs": {
+        "Accent Chairs": {
             "types": ["Chair"],
         },
         "Chaises & Benches": {
             "types": ["Chaise", "Bench", "Storage Bench"],
         },
         "Coffee Tables":{
-            "types": ["Table", "Coffee Table", "Coffee Table Set"],
+            "types": ["Coffee Table", "Coffee Table Set"],
             "tags": ["Coffee Table"],
         },
         "Futons": {
