@@ -206,7 +206,7 @@ class Product(object):
 
         # because sometimes the descriptions or dimension text in the source
         # data can have bullshit characters, sanitize the bitch
-        encoded = desc.encode('ascii', 'ignore')
+        encoded = desc.decode('ascii', 'ignore').encode()
         return encoded
 
     def build_options(self):
@@ -305,14 +305,15 @@ class Product(object):
         # (p.id doesn't exist until save())
         self.create_images(p.id, p.variants)
 
-    def find_uploaded(self, fields=['id', 'tags'], **filters):
+    def find_uploaded(self, fields=['id', 'tags']):
         """Find the uploaded equivalent of this product, if it exists.
 
         Returns
             shopify.Product object, or None if no such product exists
         """
         products = shopify.Product.find(limit=2, page=1, fields=fields,
-                                        **filters)
+                                        title=self.name,
+                                        product_type=self.product_type)
         if len(products) > 1:
             raise ValueError("Found more than one product that matches... wtf?")
         elif not products:

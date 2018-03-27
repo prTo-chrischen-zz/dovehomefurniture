@@ -30,8 +30,8 @@ _categories = {
         "Nightstands": {
             "types": ["Nightstand"],
         },
-        "Wardrobes": {
-            "types": ["Wardrobe"],
+        "Wardrobes & Vanities": {
+            "types": ["Wardrobe", "Vanity", "Armoire"],
         },
     },
     "Dining": {
@@ -90,7 +90,8 @@ _categories = {
             "types": ["Sectional"]
         },
         "Side Tables": {
-            "types": ["Side Table", "Sofa Table", "Console Table", "Accent Table"]
+            "types": ["Side Table", "Sofa Table", "Console Table",
+                      "Accent Table", "Nesting Table"]
         },
         "Sofas": {
             "types": ["Sofa"]
@@ -118,6 +119,9 @@ _categories = {
         },
         "File Cabinets": {
             "types": ["File Cabinet"]
+        },
+        "Buffets & Hutches": {
+            "types": ["Desk Buffet", "Desk Hutch"],
         },
         "Office Chairs": {
             "types": ["Office Chair"]
@@ -186,8 +190,17 @@ _categories = {
         },
     },
     "Accessories": {
+        "Accent Chests": {"types": ["Accent Chest"]},
+        "Coat Racks": {"types": ["Coat Rack"]},
         "Lamps": {"types": ["Lamp"]},
         "Mirrors": {"types": ["Mirror"]},
+        "Rec Room": {
+            "types": [
+                "Game Table",
+                "Pool Table Set",
+                "Rec Room Chair",
+            ]
+        },
         "Rugs": {"types": ["Rug"]},
         "Under Bed Storage": {"types": ["Under Bed Storage"]},
         "Wall Decor": {"types": ["Wall Decor"]},
