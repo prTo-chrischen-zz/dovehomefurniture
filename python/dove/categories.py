@@ -183,11 +183,39 @@ _categories = {
         }
     },
     "Outdoor": {
-        "Outdoor Benches": { "types": ["Outdoor Bench"] },
-        "Outdoor Chairs": {"types": ["Outdoor Chair"]},
-        "Outdoor Tables": {
-            "types": ["Outdoor Table", "Fire Pit Table"]
+        "Outdoor Seating": {
+            "types": [
+                "Outdoor Arm Chair",
+                "Outdoor Armless Chair",
+                "Outdoor Bench",
+                "Outdoor Chair",
+                "Outdoor Chaise",
+                "Outdoor Love Seat",
+                "Outdoor Sectional",
+                "Outdoor Seating Set",
+                "Outdoor Side Chair",
+                "Outdoor Sofa",
+                "Outdoor Ottoman",
+            ]
         },
+        "Outdoor Tables": {
+            "types": [
+                "Outdoor Coffee Table",
+                "Outdoor Dining Table",
+                "Outdoor Dining Set",
+                "Outdoor End Table",
+                "Outdoor Side Table",
+                "Outdoor Table",
+                "Fire Pit Table",
+            ]
+        },
+        "Outdoor Accessories": {
+            "types": [
+                "Outdoor Fire Place",
+                "Outdoor Canopy Daybed",
+                "Outdoor Serving Cart",
+            ]
+        }
     },
     "Accessories": {
         "Accent Chests": {"types": ["Accent Chest"]},
@@ -206,48 +234,6 @@ _categories = {
         "Wall Decor": {"types": ["Wall Decor"]},
     },
 }
-''' TODO
-    "Outdoor": {
-        "Outdoor Benches",
-        "Outdoor Coffee Sets",
-        "Outdoor Daybeds",
-        "Outdoor Dining Sets",
-        "Outdoor Sectionals",
-        "Outdoor Sofas",
-        "Outdoor Swings",
-        "Outdoor Table",
-        "Outdoor Umbrellas",
-    },
-    "Mattress": {
-        "Box Springs",
-        "Bunky Boards",
-        "Memory Foam Mattresses",
-        "Metal Frames",
-        "Spring Coil Mattresses",
-    },
-    "Accessories": {
-        "Bedding",
-        "Clocks",
-        "Coat Racks",
-        "Display Cabinets",
-        "Game Tables",
-        "Home Accents",
-        "Jewelry Armories",
-        "Lighting",
-        "Mirrors",
-        "Pillows & Throws",
-        "Room Dividers",
-        "Rugs",
-        "Serving Carts",
-        "Shoe Racks",
-        "Storage Trunks",
-        "Tray Tables",
-        "Vanities",
-        "Wall Decor",
-        "Wine Bars & Racks",
-    },
-}
-'''
 
 _valid_types = defaultdict(set)
 for cat, cat_data in _categories.iteritems():
