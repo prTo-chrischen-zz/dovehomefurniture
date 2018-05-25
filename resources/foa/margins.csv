@@ -1,0 +1,56 @@
+Category,Subcategory,A,B,C,Average,Margin
+BEDROOM,,,,,,
+Bedroom,Beds,46.33%,46.59%,40.93%,44.62%,
+Bedroom,Nightstands,58.82%,44.35%,82.76%,61.98%,65%
+Bedroom,Dressers & Mirrors,33.70%,32.12%,52.40%,39.41%,
+Bedroom,Chests,35.91%,36.59%,41.15%,37.88%,
+Bedroom,Media Chests,44.35%,37.58%,51.27%,44.40%,
+Bedroom,Headboards,64.22%,83.08%,84.75%,77.35%,65%
+Bedroom,Benches,,,,,
+Bedroom,Wardrobes & Vanities,0.345646438,0.5126582278,34.56%,40.13%,
+LIVING,,,,,,
+Living,Sofas,27.39%,29.63%,30.48%,29.17%,
+Living,Love Seats,31.25%,27.63%,34.09%,30.99%,
+Living,Sectionals,31.33%,40.48%,42.97%,38.26%,
+Living,Sleepers,32.31%,29.26%,,30.79%,
+Living,Accent Chairs,55.05%,54.26%,54.26%,54.52%,65%
+Living,Recliners,50.25%,39.00%,43.84%,44.36%,
+Living,Futons,52.21%,48.04%,53.69%,51.31%,60%
+Living,Ottomans,50.36%,46.98%,,48.67%,60%
+Living,Coffee Tables,53.25%,42.46%,50.21%,48.64%,60%
+Living,Side Tables,80.81%,69.77%,50.25%,66.94%,65%
+Living,Entertainment Consoles,50.28%,64.22%,,57.25%,65%
+Living,Cabinets,51.27%,51.27%,54.26%,52.27%,65%
+Living,Chaises & Benches,40.82%,86.96%,129.23%,85.67%,65%
+Living,Shelves,84.75%,50.36%,80.00%,71.70%,65%
+DINING,,,,,,
+Dining,Dining Tables,46.09%,38.44%,80.68%,55.07%,
+Dining,Counter Height Tables,44.30%,63.28%,78.91%,62.16%,
+Dining,Chairs & Stools,51.08%,41.15%,44.55%,45.59%,
+Dining,"Buffets, Hutches, Curios",29.23%,34.26%,,31.74%,
+Dining,Kitchen Islands,,,,,
+Dining,Servers & Carts,40.93%,36.59%,,38.76%,
+Dining,Dining Misc.,23.26%,,,23.26%,
+YOUTH,,,,,,
+Youth,Youth Beds,55.05%,102.74%,,78.89%,
+Youth,Bunk Beds,40.17%,33.74%,,36.95%,
+Youth,Loft Beds,,,,#DIV/0!,
+Youth,Trundle Beds,,,,#DIV/0!,
+Youth,Youth Nightstands,122.45%,85.33%,,103.89%,65%
+Youth,Youth Dressers & Mirrors,50.28%,50.25%,,50.27%,
+Youth,Youth Chests,50.36%,50.28%,,50.32%,
+Youth,Youth Misc.,,,,,
+HOME OFFICE,,,,,,
+Home Office,Desks,34.66%,,,,
+Home Office,Office Chairs,,,,,
+Home Office,Bookshelves,,,,,
+Home Office,File Cabinets,,,,,
+OUTDOOR,,,,,,
+Outdoor,Outdoor Seatings,,,,,
+Outdoor,Outdoor Tables,,,,,
+Outdoor,Outdoor Accessories,,,,,
+ACCESSORIES,,,,,,
+Accessoriies,Lamps,,,,,
+Accessoriies,Mirrors,,,,,
+Accessoriies,Rugs,,,,,
+Accessoriies,Wall Décor,,,,,
