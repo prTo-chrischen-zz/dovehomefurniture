@@ -10,9 +10,8 @@ prices = {}
 with open(sys.argv[1], 'r') as f:
     reader = csv.DictReader(f, delimiter=',')
     for row in reader:
-        sku = row["ITEM"]
-        orig_price = row["WEST NET"]
-        price = row["Dove Price"]
+        sku = row["Item"]
+        price = row["MAP"]
         prices[sku] = price
 
 
@@ -25,10 +24,16 @@ query_limit = 250
 num_variants = 0
 missing_prices = defaultdict(list)
 
-def calculate_price(price_str):
+def parse_price(price_str):
     p = price_str.replace('$', '')
     p = p.replace(',', '')
-    d = int(float(p))
+    return int(float(p))
+
+def calculate_price(price):
+    if isinstance(price, str):
+        d = parse_price(price)
+    else:
+        d = price
     # round to nearest 9
     return (int(math.ceil(d / 10.0)) * 10) - 1
 
@@ -61,8 +66,20 @@ for page in xrange(1, ((num_products-1)/query_limit)+2):
                         break
 
             if sku in prices:
-                price = calculate_price(prices[sku])
+                # HACK: for mirrors, we want to update the price so that
+                #       it also includes the dresser price
+                if 'dresser' in product.title.lower() and sku.endswith('M'):
+                    dresser_sku = sku[:-1]
+                    dresser_sku += 'D'
+                    dresser_price = parse_price(prices[dresser_sku])
+                    mirror_price = parse_price(prices[sku])
+
+                    price = calculate_price(dresser_price + mirror_price)
+                else:
+                    price = calculate_price(prices[sku])
+
                 # UPDATE price
+                old_price = variant.price
                 variant.price = price
 
                 if variant.sku != sku:
@@ -70,7 +87,7 @@ for page in xrange(1, ((num_products-1)/query_limit)+2):
                     # UPDATE SKU
                     variant.sku = sku
 
-                print product.title, sku, price
+                print product.title, sku, old_price, price
                 variant.save()
             else:
                 missing_prices[product.title].append(sku)
