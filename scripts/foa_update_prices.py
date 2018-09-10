@@ -48,10 +48,21 @@ num_products = shopify.Product.count(**filter_args)
 # max 250 items per query, so need to do it by pages
 for page in xrange(1, ((num_products-1)/query_limit)+2):
     products = shopify.Product.find(limit=query_limit, page=page,
-                                    fields=['id', 'vendor', 'title', 'variants'],
+                                    fields=['id', 'vendor', 'title', 'variants', 'tags'],
                                     **filter_args)
 
     for product in products:
+        print product.title
+        skus = [v.sku for v in product.variants
+                if v.sku in prices]
+        if skus:
+            existing_tags = [i.strip() for i in product.tags.split(',')]
+            if 'MAP' not in existing_tags:
+                existing_tags.append('MAP')
+                product.tags = existing_tags
+                print "UPDATE:", product.title,
+                product.save()
+        continue
 
         for variant in product.variants:
             # every variant should have a SKU
@@ -91,7 +102,7 @@ for page in xrange(1, ((num_products-1)/query_limit)+2):
                 variant.save()
             else:
                 missing_prices[product.title].append(sku)
-
+sys.exit(0)
 print "total variants:", num_variants
 
 missing = 0
