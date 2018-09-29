@@ -27,6 +27,9 @@ sku_suffixes = [
     '-PK',
 ]
 
+variants_removed = 0
+products_removed = []
+
 num_products = shopify.Product.count(**filter_args)
 # max 250 items per query, so need to do it by pages
 for page in xrange(1, ((num_products-1)/query_limit)+2):
@@ -43,6 +46,7 @@ for page in xrange(1, ((num_products-1)/query_limit)+2):
 
             if sku in discontinued:
                 print "MATCH:", product.title, sku
+                # note: destroy immediately removes the variant from shopify
                 variant.destroy()
                 num_removed += 1
             else:
@@ -51,14 +55,29 @@ for page in xrange(1, ((num_products-1)/query_limit)+2):
                     s = '%s%s' % (sku, suffix)
                     if s in discontinued:
                         print "[suffix]", product.title, s
+                        # note: destroy immediately removes the variant from shopify
                         variant.destroy()
                         num_removed += 1
                         break
 
+        destroy = False
+
         if num_removed and product.product_type == 'Dresser':
-            print "DELETE PRODUCT:", product.title
-            product.destroy()
+            # if any dresser variants get removed, kill the whole thing
+            destroy = True
         elif num_removed == len(product.variants):
             # if we destroyed all the variants, delete the product
+            destroy = True
+
+        if not destroy and num_removed:
+            # keep track of individual variant removals that didn't lead to
+            # product removals
+            variants_removed += num_removed
+
+        if destroy:
+            products_removed.append(product.title)
+            # NOTE: this immediately destroys the product on shopify
             print "DELETE PRODUCT:", product.title
             product.destroy()
+
+print "removed %d variants, %d products" % (variants_removed, len(products_removed))

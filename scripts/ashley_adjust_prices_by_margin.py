@@ -1,6 +1,7 @@
 import csv
 import shopify
 import math
+import os
 import sys
 import time
 from collections import defaultdict
@@ -12,8 +13,8 @@ shopify_config.setup()
 
 # load the price data
 prices = {}
-cwd = os.path.dirname(os.path.abspath(__file__))
-margin_file = os.path.join(cwd, 'resources', 'ashley', 'margins.csv')
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+margin_file = os.path.join(root, 'resources', 'ashley', 'margins.csv')
 with open(margin_file, 'r') as f:
     reader = csv.DictReader(f, delimiter=',')
     for row in reader:
@@ -26,26 +27,25 @@ with open(margin_file, 'r') as f:
         if not margin:
             margin = '50%'
 
-        if margin:
-            m = float(margin.strip('%'))/100.0
-            if m == 1:
-                # prices are already at 100% margin
-                continue
-            elif m > 1:
-                print "ERROR: margin value > 1 '%s'" % margin
-                sys.exit(0)
-            # this is the multiplier on the base price that we want (1 + margin)
-            desired_p = 1 + m
+        m = float(margin.strip('%'))/100.0
+        if m == 1:
+            # prices are already at 100% margin
+            continue
+        elif m > 1:
+            print "ERROR: margin value > 1 '%s'" % margin
+            sys.exit(0)
 
-            # since everything is at 2x base right now, the actual multiplier
-            # is (1+margin)/2
-            # ie. 60% margin -> (1+.6)/2 = 0.8
-            multiplier = desired_p/2.0
-        else:
-            # otherwise, set to 50% margin
-            multiplier = 0.75
+        # (current price in shopify) = (1+m)*(original price)
+        # and our objective is to revert to 2*original (ie. 100% margin [m==1])
+        # so calculate a multiplier on the current price that will get
+        # us to 2*(original price)
 
-        print subcat
+        # 2*(original) = 2*(current / (1+m))
+        # hence (multiplier on current price) = 2 / (1+m)
+
+        multiplier = 2.0 / (1+m)
+
+        print subcat, multiplier
 
         # get the collection ID for this subcategory
         cols = shopify.SmartCollection.find(fields=['title', 'id'], title=subcat)
@@ -62,7 +62,6 @@ with open(margin_file, 'r') as f:
         cid = cols[0].id
 
         prices[cid] = multiplier
-        print multiplier
 
 
 def adjust_price(p, multiplier=0.75):
