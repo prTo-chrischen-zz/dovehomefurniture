@@ -18,11 +18,6 @@ with open(sys.argv[1], 'r') as f:
 from dove import categories, shopify_config
 shopify_config.setup()
 
-filter_args = {'vendor': 'Furniture of America'}
-query_limit = 250
-
-num_variants = 0
-missing_prices = defaultdict(list)
 
 def parse_price(price_str):
     p = price_str.replace('$', '')
@@ -44,6 +39,22 @@ sku_suffixes = [
     '-PK',
 ]
 
+def add_tag(product, tag_to_add):
+    existing_tags = [i.strip() for i in product.tags.split(',')]
+    if tag_to_add not in existing_tags:
+        existing_tags.append(tag_to_add)
+        product.tags = existing_tags
+        print " -> added MAP tag"
+        product.save()
+
+filter_args = {'vendor': 'Furniture of America'}
+query_limit = 250
+
+num_variants = 0
+products_updated = 0
+missing_prices = defaultdict(list)
+
+
 num_products = shopify.Product.count(**filter_args)
 # max 250 items per query, so need to do it by pages
 for page in xrange(1, ((num_products-1)/query_limit)+2):
@@ -52,31 +63,27 @@ for page in xrange(1, ((num_products-1)/query_limit)+2):
                                     **filter_args)
 
     for product in products:
-        print product.title
-        skus = [v.sku for v in product.variants
-                if v.sku in prices]
-        if skus:
-            existing_tags = [i.strip() for i in product.tags.split(',')]
-            if 'MAP' not in existing_tags:
-                existing_tags.append('MAP')
-                product.tags = existing_tags
-                print "UPDATE:", product.title,
-                product.save()
-        continue
+
+        product_updated = False
 
         for variant in product.variants:
             # every variant should have a SKU
             sku = variant.sku
-            num_variants += 1
 
             if sku not in prices:
-                # check to see if it has a suffix-less version
+                # check to see if it has a suffix-less or suffix-ed version
                 for suffix in sku_suffixes:
                     if sku.endswith(suffix):
-                        sku = sku[:-len(suffix)]
+                        possible_sku = sku[:-len(suffix)]
+                    else:
+                        possible_sku = sku + suffix
+                    if possible_sku in prices:
+                        print "[suffix]", sku, possible_sku
+                        sku = possible_sku
                         break
 
             if sku in prices:
+
                 # HACK: for mirrors, we want to update the price so that
                 #       it also includes the dresser price
                 if 'dresser' in product.title.lower() and sku.endswith('M'):
@@ -89,21 +96,36 @@ for page in xrange(1, ((num_products-1)/query_limit)+2):
                 else:
                     price = calculate_price(prices[sku])
 
-                # UPDATE price
-                old_price = variant.price
-                variant.price = price
+                # UPDATE this thing
+                # float comparison because variant.price is a str
+                if float(variant.price) != float(price):
 
-                if variant.sku != sku:
-                    print "update SKU: %s -> %s" % (variant.sku, sku)
-                    # UPDATE SKU
-                    variant.sku = sku
+                    if float(variant.price) > float(price):
+                        print "FUCK:", price, variant.price, sku, product.title
 
-                print product.title, sku, old_price, price
-                variant.save()
+                    # update the price
+                    old_price = variant.price
+                    variant.price = price
+
+                    # update the SKU, to make future pricing easier
+                    if variant.sku != sku:
+                        print "update SKU: %s -> %s" % (variant.sku, sku)
+                        variant.sku = sku
+
+                    print product.title, sku, old_price, price
+                    variant.save()
+                    num_variants += 1
+                    product_updated = True
             else:
                 missing_prices[product.title].append(sku)
+
+        if product_updated:
+            add_tag(product, "MAP")
+            products_updated += 1
+
+print "updated variants:", num_variants
+print "updated products:", products_updated
 sys.exit(0)
-print "total variants:", num_variants
 
 missing = 0
 with open('missing_prices.csv', 'w') as f:
